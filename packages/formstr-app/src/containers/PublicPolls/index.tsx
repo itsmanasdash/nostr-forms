@@ -198,9 +198,7 @@ const PollFeedPage = () => {
 
   return (
     <div style={{ maxWidth: 800, margin: '0 auto', padding: '20px' }}>
-      <Title level={3} style={{ textAlign: 'center' }}>Nostr Polls</Title>
-      <Divider />
-      
+
       <div style={{ textAlign: 'center', marginBottom: 20 }}>
         <Select
           style={{ width: 240 }}
