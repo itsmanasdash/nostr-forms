@@ -1,9 +1,7 @@
 import { Card, Progress, Space, Typography, Row, Col } from "antd";
 import { Event } from "nostr-tools";
 import { useEffect } from "react";
-import { useAppContext } from "../../hooks/useAppContext/useAppContext";
-import OverlappingAvatars from "../../components/Common/OverlappingAvatars";
-import { TextWithImages } from "../../components/Common/TextWithImages";
+import { useApplicationContext } from "../../hooks/useApplicationContext";
 
 const { Text } = Typography;
 
@@ -20,7 +18,7 @@ export const Analytics: React.FC<AnalyticsProps> = ({
     pollEvent.tags.find((t) => t[0] === "label")?.[1] || pollEvent.content;
   const options = pollEvent.tags.filter((t) => t[0] === "option");
 
-  const { profiles, fetchUserProfileThrottled } = useAppContext();
+  const { profiles, fetchUserProfileThrottled } = useApplicationContext();
 
   useEffect(() => {
     responses.forEach((event) => {
@@ -29,7 +27,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({
         fetchUserProfileThrottled(responderId);
       }
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const calculateResults = () => {
@@ -60,13 +57,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({
   const results = calculateResults();
   const totalVotes = results.reduce((acc, result) => acc + result.count, 0);
 
-  // Function to determine progress bar color based on percentage
+
   const getProgressColor = (percentage: number) => {
-    if (percentage < 20) return "#f5222d"; // Red for low percentages
-    if (percentage < 40) return "#fa8c16"; // Orange for below average
-    if (percentage < 60) return "#faad14"; // Yellow for average
-    if (percentage < 80) return "#a0d911"; // Light green for above average
-    return "#52c41a"; // Green for high percentages
+    if (percentage < 20) return "#f5222d"; 
+    if (percentage < 40) return "#fa8c16"; 
+    if (percentage < 60) return "#faad14"; 
+    if (percentage < 80) return "#a0d911"; 
+    return "#52c41a";
   };
 
   return (
@@ -76,7 +73,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {options.map((option, index) => {
-          const responders = Array.from(results[index].responders);
           const count = results[index].count;
           const percentage = totalVotes > 0 
             ? parseFloat(((count / totalVotes) * 100).toFixed(2)) 
@@ -86,21 +82,18 @@ export const Analytics: React.FC<AnalyticsProps> = ({
           return (
             <div key={index} className="poll-option">
               <div className="poll-option-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                <Text strong><TextWithImages content={option[2]} /></Text>
+                <Text strong>{option[2]}</Text>
                 <Text>{count} votes</Text>
               </div>
               
               <Row gutter={16} align="middle">
-                <Col span={18}>
+                <Col span={24}>
                   <Progress 
                     percent={percentage} 
                     status="active" 
                     strokeColor={barColor}
                     format={(percent) => `${percent}%`}
                   />
-                </Col>
-                <Col span={6} style={{ textAlign: 'right' }}>
-                  <OverlappingAvatars ids={responders} maxAvatars={3} />
                 </Col>
               </Row>
             </div>

@@ -1,11 +1,11 @@
 import React, { useEffect } from "react";
 import { Tooltip, Typography } from "antd";
 import { HeartOutlined, HeartFilled } from "@ant-design/icons";
-import { useAppContext } from "../../../hooks/useAppContext/useAppContext";
 import { Event, EventTemplate } from "nostr-tools";
 import { signEvent } from "../../../nostr/poll";
 import { pollRelays } from "../../../nostr/common";
-import { useUserContext } from "../../../hooks/useUserContext";
+import { useProfileContext } from "../../../hooks/useProfileContext";
+import { useApplicationContext } from "../../../hooks/useApplicationContext";
 
 interface LikesProps {
   pollEvent: Event;
@@ -13,8 +13,8 @@ interface LikesProps {
 
 const Likes: React.FC<LikesProps> = ({ pollEvent }) => {
   const { likesMap, fetchLikesThrottled, poolRef, addEventToMap } =
-    useAppContext();
-  const { user } = useUserContext();
+    useApplicationContext();
+  const { user } = useProfileContext();
 
   const addLike = async () => {
     if (!user) {
@@ -29,15 +29,16 @@ const Likes: React.FC<LikesProps> = ({ pollEvent }) => {
     };
     
     let signedEvent = await signEvent(event, user.privateKey);
-    let finalEvent;
     if (signedEvent) {
+
       const finalEvent: Event = {
         ...signedEvent,
         pubkey: user.pubkey
       };
+      
+      poolRef.current.publish(pollRelays, finalEvent);
+      addEventToMap(finalEvent);
     }
-    poolRef.current.publish(pollRelays, finalEvent!);
-    addEventToMap(finalEvent!);
   };
 
   const hasLiked = () => {

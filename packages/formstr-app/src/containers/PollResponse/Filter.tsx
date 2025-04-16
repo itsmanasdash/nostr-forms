@@ -1,10 +1,10 @@
-import { Dropdown, Menu, Divider } from "antd";
+import { Dropdown, Menu } from "antd";
 import { FilterOutlined } from "@ant-design/icons";
 import React from "react";
 import { Event } from "nostr-tools";
 import { useListContext } from "../../hooks/useListContext/useListContext";
-import { useUserContext } from "../../hooks/useUserContext";
 import type { MenuProps } from "antd";
+import { useProfileContext } from "../../hooks/useProfileContext";
 
 interface FilterProps {
   onChange: (pubkeys: string[]) => void;
@@ -13,7 +13,7 @@ interface FilterProps {
 export const Filters: React.FC<FilterProps> = ({ onChange }) => {
   const [open, setOpen] = React.useState<boolean>(false);
   const { lists, handleListSelected, selectedList } = useListContext();
-  const { user } = useUserContext();
+  const { user } = useProfileContext();
 
   const handleAllPosts = () => {
     handleListSelected(null);

@@ -1,12 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { Tooltip, Typography } from "antd";
 import { ThunderboltOutlined, ThunderboltFilled } from "@ant-design/icons";
-import { useAppContext } from "../../../hooks/useAppContext/useAppContext";
 import { Event } from "nostr-tools";
 import { signEvent } from "../../../nostr/poll";
 import { pollRelays } from "../../../nostr/common";
 import { nip57 } from "nostr-tools";
-import { useUserContext } from "../../../hooks/useUserContext";
+import { useProfileContext } from "../../../hooks/useProfileContext";
+import { useApplicationContext } from "../../../hooks/useApplicationContext";
 
 const { Text } = Typography;
 
@@ -15,8 +15,8 @@ interface ZapProps {
 }
 
 const Zap: React.FC<ZapProps> = ({ pollEvent }) => {
-  const { fetchZapsThrottled, zapsMap, profiles } = useAppContext();
-  const { user } = useUserContext();
+  const { fetchZapsThrottled, zapsMap, profiles } = useApplicationContext();
+  const { user } = useProfileContext();
   const [hasZapped, setHasZapped] = useState<boolean>(false);
 
   useEffect(() => {
@@ -76,9 +76,11 @@ const Zap: React.FC<ZapProps> = ({ pollEvent }) => {
       JSON.stringify(signEvent(zapRequestEvent, user.privateKey))
     );
     let zapEndpoint = await nip57.getZapEndpoint(recipient.event);
+    
     const zaprequestUrl =
       zapEndpoint +
       `?amount=${Number(zapAmount) * 1000}&nostr=${serializedZapEvent}`;
+
     const paymentRequest = await fetch(zaprequestUrl);
     const request = await paymentRequest.json();
     const openAppUrl = "lightning:" + request.pr;

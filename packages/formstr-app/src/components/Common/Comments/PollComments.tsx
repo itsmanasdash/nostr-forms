@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Avatar, Button, Card, Tooltip, Typography } from "antd";
 import { CommentOutlined } from "@ant-design/icons";
-import { useAppContext } from "../../../hooks/useAppContext/useAppContext";
 import { signEvent } from "../../../nostr/poll";
 import { pollRelays } from "../../../nostr/common";
 import { Event, nip19 } from "nostr-tools";
 import { DEFAULT_IMAGE_URL } from "../../../utils/constants";
 import { SubCloser } from "nostr-tools";
-import { useUserContext } from "../../../hooks/useUserContext";
 import { TextWithImages } from "../TextWithImages";
 import { calculateTimeAgo } from "../../../utils/common";
 import CommentInput from "../Comments/CommentInput";
+import { useProfileContext } from "../../../hooks/useProfileContext";
+import { useApplicationContext } from "../../../hooks/useApplicationContext";
 
 const { Meta } = Card;
 const { Text } = Typography;
@@ -28,14 +28,14 @@ const PollComments: React.FC<PollCommentsProps> = ({ pollEventId }) => {
     fetchCommentsThrottled,
     commentsMap,
     addEventToMap,
-  } = useAppContext();
+  } = useApplicationContext();
 
   const [replyTo, setReplyTo] = useState<string | null>(null);
   const [showReplies, setShowReplies] = useState<Map<string, boolean>>(
     new Map()
   );
 
-  const { user } = useUserContext();
+  const { user } = useProfileContext();
 
   const fetchComments = () => {
     let filter = {
@@ -56,14 +56,12 @@ const PollComments: React.FC<PollCommentsProps> = ({ pollEventId }) => {
         if (closer) closer.close();
       };
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showComments]);
 
   useEffect(() => {
     if (!commentsMap?.get(pollEventId)) {
       fetchCommentsThrottled(pollEventId);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSubmitComment = async (content: string, parentId?: string) => {
