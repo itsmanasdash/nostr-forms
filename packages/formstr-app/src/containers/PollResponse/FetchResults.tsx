@@ -3,9 +3,9 @@ import { Event } from "nostr-tools";
 import { pollRelays } from "../../nostr/common";
 import { useEffect, useState } from "react";
 import { Analytics } from "../PollResults/Analytics";
-import { useAppContext } from "../../hooks/useAppContext/useAppContext";
 import { SubCloser } from "nostr-tools";
 import { nip13 } from "nostr-tools";
+import { useApplicationContext } from "../../hooks/useApplicationContext";
 
 interface FetchResultsProps {
   pollEvent: Event;
@@ -25,7 +25,7 @@ export const FetchResults: React.FC<FetchResultsProps> = ({
   const pollExpiration = pollEvent.tags.filter(
     (t) => t[0] === "endsAt"
   )?.[0]?.[1];
-  const { poolRef } = useAppContext();
+  const { poolRef } = useApplicationContext();
   const getUniqueLatestEvents = (events: Event[]) => {
     const eventMap = new Map<string, Event>();
 
@@ -78,7 +78,6 @@ export const FetchResults: React.FC<FetchResultsProps> = ({
     return () => {
       if (closer) closer.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [poolRef, filterPubkeys]);
 
   return (

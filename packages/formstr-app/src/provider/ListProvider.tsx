@@ -1,11 +1,11 @@
 import { ReactNode, createContext, useEffect, useState } from "react";
-import { useAppContext } from "../hooks/useAppContext/useAppContext";
 import { Event } from "nostr-tools";
 import { SubCloser } from "nostr-tools";
 import { parseContacts, getATagFromEvent } from "../nostr/poll";
 import { pollRelays } from "../nostr/common";
-import { useUserContext } from "../hooks/useUserContext";
-import { User } from "./UserProvider"
+import { User } from "./ProfileProvider"
+import { useProfileContext } from "../hooks/useProfileContext";
+import { useApplicationContext } from "../hooks/useApplicationContext";
 
 interface ListContextInterface {
   lists: Map<string, Event> | undefined;
@@ -18,8 +18,8 @@ export const ListContext = createContext<ListContextInterface | null>(null);
 export function ListProvider({ children }: { children: ReactNode }) {
   const [lists, setLists] = useState<Map<string, Event> | undefined>();
   const [selectedList, setSelectedList] = useState<string | undefined>();
-  const { poolRef } = useAppContext();
-  const { user, setUser } = useUserContext();
+  const { poolRef } = useApplicationContext();
+  const { user, setUser } = useProfileContext();
 
   const handleListEvent = (event: Event) => {
     setLists((prevMap) => {

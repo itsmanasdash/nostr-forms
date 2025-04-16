@@ -1,4 +1,4 @@
-const LOCAL_STORAGE_KEYS = "pollerama:keys";
+const LOCAL_STORAGE_KEYS = "keys";
 
 type Keys = { pubkey: string; secret?: string };
 

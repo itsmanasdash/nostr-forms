@@ -3,7 +3,6 @@ import {
   Button,
   Card,
   Form,
-  Menu,
   Dropdown,
   Avatar,
   Typography,
@@ -26,19 +25,19 @@ import { FetchResults } from "./FetchResults";
 import { SingleChoiceOptions } from "./SingleChoiceOptions";
 import { MultipleChoiceOptions } from "./MultipleChoiceOptions";
 import { DEFAULT_IMAGE_URL } from "../../utils/constants";
-import { useAppContext } from "../../hooks/useAppContext/useAppContext";
 import PollComments from "../../components/Common/Comments/PollComments";
 import { TextWithImages } from "../../components/Common/TextWithImages";
 import Likes from "../../components/Common/Likes/likes";
 import Zap from "../../components/Common/Zaps/zaps";
 import { Filters } from  "./Filter";
-import { useUserContext } from "../../hooks/useUserContext";
 import { bytesToHex } from "@noble/hashes/utils";
 import dayjs from "dayjs";
 import { useMiningWorker } from "../../hooks/useMinningWorker/useMinningWorker";
 import PollTimer from "./PollTimer";
+import { useProfileContext } from "../../hooks/useProfileContext";
+import { useApplicationContext } from "../../hooks/useApplicationContext";
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 interface PollResponseFormProps {
   pollEvent: Event;
@@ -55,8 +54,8 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
   const [showResults, setShowResults] = useState<boolean>(false);
   const [filterPubkeys, setFilterPubkeys] = useState<string[]>([]);
   const [showPoWModal, setShowPoWModal] = useState<boolean>(false);
-  const { profiles, poolRef, fetchUserProfileThrottled } = useAppContext();
-  const { user, setUser } = useUserContext();
+  const { profiles, poolRef, fetchUserProfileThrottled } = useApplicationContext();
+  const { user, setUser } = useProfileContext();
   const difficulty = Number(
     pollEvent.tags.filter((t) => t[0] === "PoW")?.[0]?.[1]
   );
@@ -93,7 +92,6 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
     poolRef,
     fetchUserProfileThrottled,
     userResponse,
-    responses,
   ]);
 
   const handleResponseChange = (optionValue: string) => {
@@ -202,6 +200,8 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
     }
   ];
 
+  const hasSelectedResponse = responses.length > 0;
+
   return (
     <div style={{ margin: 16 }}>
       <Card>
@@ -266,7 +266,11 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
               alignItems: "center" 
             }}>
               {displaySubmit() ? (
-                <Button type="primary" htmlType="submit">
+                <Button 
+                  type="primary" 
+                  htmlType="submit"
+                  disabled={!hasSelectedResponse}
+                >
                   Submit Response
                 </Button>
               ) : (

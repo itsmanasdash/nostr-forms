@@ -3,17 +3,15 @@ import { Event } from "nostr-tools";
 import { Filter } from "nostr-tools";
 import { SubCloser } from "nostr-tools";
 import { verifyEvent } from "nostr-tools";
-import { Select, Button, Spin, Card, Space, Typography, Divider } from "antd";
+import { Select, Button, Card, Space } from "antd";
 import { useApplicationContext } from "../../hooks/useApplicationContext";
-import { useUserContext } from "../../hooks/useUserContext";
 import { pollRelays } from "../../nostr/common";
 import PollResponseForm from "../PollResponse/PollResponseForm";
-import { Notes } from "../Notes";
+import { useProfileContext } from "../../hooks/useProfileContext";
 
 const { Option } = Select;
-const { Title } = Typography;
 
-// Feed component to render polls and notes
+// Feed component to render polls
 const Feed = ({ events, userResponses }: { 
   events: Event[], 
   userResponses: Map<string, Event> 
@@ -35,13 +33,7 @@ const Feed = ({ events, userResponses }: {
           return eventIdsMap[b].created_at - eventIdsMap[a].created_at;
         })
         .map((eventId: string) => {
-          if (eventIdsMap[eventId].kind === 1) {
-            return (
-              <Card key={eventId} style={{ marginBottom: 16 }}>
-                <Notes event={eventIdsMap[eventId]} />
-              </Card>
-            );
-          } else if (eventIdsMap[eventId].kind === 1068) {
+          if (eventIdsMap[eventId].kind === 1068) {
             return (
               <Card key={eventId} style={{ marginBottom: 16 }}>
                 <PollResponseForm
@@ -60,12 +52,12 @@ const Feed = ({ events, userResponses }: {
 
 // Main component to handle data fetching and preparation
 const PollFeedPage = () => {
+  const { user } = useProfileContext();
+  const { poolRef } = useApplicationContext();
   const [pollEvents, setPollEvents] = useState<Event[] | undefined>();
   const [userResponses, setUserResponses] = useState<Event[] | undefined>();
   const [eventSource, setEventSource] = useState<"global" | "following">("global");
   const [feedSubscription, setFeedSubscription] = useState<SubCloser | undefined>();
-  const { poolRef } = useApplicationContext();
-  const { user } = useUserContext();
   const [loadingMore, setLoadingMore] = useState(false);
 
   const loadMore = () => {

@@ -4,7 +4,7 @@ import { Event } from "nostr-tools";
 import { SimplePool } from "nostr-tools";
 import { pollRelays } from "../../nostr/common";
 import { useEffect, useState } from "react";
-import { Typography, Spin } from "antd";
+import { Spin } from "antd";
 import { Analytics } from "./Analytics";
 import { SubCloser } from "nostr-tools";
 
@@ -66,7 +66,6 @@ export const PollResults = () => {
     return () => {
       if (closer) closer.close();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pollEvent]);
 
   console.log(pollEvent);
