@@ -15,7 +15,7 @@ export const CreateFormHeader: React.FC = () => {
 
   const { Header } = Layout;
   const { Text } = Typography;
-  const { saveForm, setSelectedTab, formSettings, relayList } =
+  const { saveForm, setSelectedTab, formSettings, relayList, questionsList, formName } =
     useFormBuilderContext();
 
   const onClickHandler: MenuProps["onClick"] = (e) => {
@@ -27,7 +27,18 @@ export const CreateFormHeader: React.FC = () => {
       alert("Form ID is required");
       return;
     }
-
+    if(!questionsList.length){
+      alert("Form has no questions");
+      return;
+    }
+    if(!formSettings?.description){
+      alert("Form description is required");
+      return;
+    }
+    if(!formName){
+      alert("Form name is required");
+      return;
+    }
     setIsPostPublishModalOpen(true);
     setAcceptedRelays([]);
 
