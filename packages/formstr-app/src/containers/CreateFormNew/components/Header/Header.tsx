@@ -36,7 +36,7 @@ export const CreateFormHeader: React.FC = () => {
       return;
     }
     if(!formName){
-      alert("Form name is required");
+      alert("Form title is required");
       return;
     }
     setIsPostPublishModalOpen(true);
