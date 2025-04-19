@@ -31,10 +31,6 @@ export const CreateFormHeader: React.FC = () => {
       alert("Form has no questions");
       return;
     }
-    if(!formSettings?.description){
-      alert("Form description is required");
-      return;
-    }
     if(!formName){
       alert("Form title is required");
       return;
