@@ -25,10 +25,7 @@ import { FetchResults } from "./FetchResults";
 import { SingleChoiceOptions } from "./SingleChoiceOptions";
 import { MultipleChoiceOptions } from "./MultipleChoiceOptions";
 import { DEFAULT_IMAGE_URL } from "../../utils/constants";
-import PollComments from "../../components/Common/Comments/PollComments";
 import { TextWithImages } from "../../components/Common/TextWithImages";
-import Likes from "../../components/Common/Likes/likes";
-import Zap from "../../components/Common/Zaps/zaps";
 import { Filters } from  "./Filter";
 import { bytesToHex } from "@noble/hashes/utils";
 import dayjs from "dayjs";
@@ -36,7 +33,6 @@ import { useMiningWorker } from "../../hooks/useMinningWorker/useMinningWorker";
 import PollTimer from "./PollTimer";
 import { useProfileContext } from "../../hooks/useProfileContext";
 import { useApplicationContext } from "../../hooks/useApplicationContext";
-
 const { Text } = Typography;
 
 interface PollResponseFormProps {
@@ -204,12 +200,18 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
 
   return (
     <div style={{ margin: 16 }}>
-      <Card>
+      <Card bordered={true} style={{
+        boxShadow: 'none',
+        border: '1px solid #f0f0f0'}}>
         <Form onFinish={handleSubmitResponse}>
           <Card
-            bordered
+            bordered={false}
+            style={{
+              boxShadow: 'none',
+              marginBottom: -10
+            }}
             title={
-              <div style={{ display: "flex", alignItems: "center" }}>
+              <div style={{ display: "flex", alignItems: "center"}}>
                 <Avatar
                   src={profiles?.get(pollEvent.pubkey)?.picture || DEFAULT_IMAGE_URL}
                   style={{ marginRight: 12, cursor: "pointer" }}
@@ -291,17 +293,6 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
             </div>
           </Card>
         </Form>
-
-        <div style={{ 
-          display: "flex", 
-          padding: "12px 0", 
-          borderTop: "1px solid #f0f0f0",
-          marginTop: 12 
-        }}>
-          <PollComments pollEventId={pollEvent.id} />
-          <Likes pollEvent={pollEvent} />
-          <Zap pollEvent={pollEvent} />
-        </div>
       </Card>
 
       <Modal

@@ -68,6 +68,10 @@ export const Analytics: React.FC<AnalyticsProps> = ({
 
   return (
     <Card 
+      bordered={false}
+      style={{
+        boxShadow: 'none',
+      }}
       title={label} 
       className="poll-analytics-card"
     >

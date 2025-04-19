@@ -9,10 +9,8 @@ import {
 } from "react";
 import { LOCAL_STORAGE_KEYS, getItem, setItem } from "../utils/localStorage";
 import { Modal } from "antd";
-import { fetchUserProfile } from "../nostr/poll";
 import { DEFAULT_IMAGE_URL } from "../utils/constants";
 import { Event, SimplePool } from "nostr-tools";
-import { getKeysFromLocalStorage } from "../utils/pollStorage";
 
 interface ProfileProviderProps {
   children?: ReactNode;
@@ -27,7 +25,7 @@ export type User = {
 };
 
 export interface ProfileContextType {
-  pubkey: string | undefined;
+  pubkey: string | undefined;   // pubkey should be under type User imo(if accepted i will remove it and change it in form parts too)
   requestPubkey: () => Promise<string | undefined>;
   logout: () => void;
   user: User | null;
@@ -108,48 +106,6 @@ export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
       setUsingNip07(false);
     }
   };
-
-  const addEventToProfiles = (event: Event) => {
-    if (profiles.has(event.pubkey)) return;
-    try {
-      let content = JSON.parse(event.content);
-      const newProfiles = new Map(profiles);
-      newProfiles.set(event.pubkey, { ...content, event: event });
-      setProfiles(newProfiles);
-    } catch (e) {
-      console.error("Error parsing event", e);
-    }
-  };
-
-  useEffect(() => {
-    const keys = getKeysFromLocalStorage();
-    if (Object.keys(keys).length !== 0 && !user) {
-      fetchUserProfile(keys.pubkey, poolRef.current).then(
-        (kind0: Event | null) => {
-          if (!kind0) {
-            setUser({
-              name: ANONYMOUS_USER_NAME,
-              picture: DEFAULT_IMAGE_URL,
-              pubkey: keys.pubkey,
-              privateKey: keys.secret,
-            });
-            setPubkey(keys.pubkey); 
-            return;
-          }
-          let profile = JSON.parse(kind0.content);
-          setUser({
-            name: profile.name,
-            picture: profile.picture,
-            pubkey: keys.pubkey,
-            privateKey: keys.secret,
-            ...profile,
-          });
-          setPubkey(keys.pubkey); 
-          addEventToProfiles(kind0);
-        }
-      );
-    }
-  }, []);
 
   return (
     <ProfileContext.Provider value={{ pubkey, requestPubkey, logout, user, setUser }}>

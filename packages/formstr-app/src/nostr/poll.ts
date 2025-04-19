@@ -2,8 +2,6 @@ import { EventTemplate, finalizeEvent, getPublicKey, SimplePool , Event } from "
 import { pollRelays } from "./common";
 import { hexToBytes } from "@noble/hashes/utils";
 
-
-
   export const fetchUserProfile = async (pubkey: string, pool: SimplePool) => {
     let result = await pool.get(pollRelays, { kinds: [0], authors: [pubkey] });
     return result;
@@ -28,30 +26,6 @@ import { hexToBytes } from "@noble/hashes/utils";
     let result = await pool.querySync(pollRelays, {
       kinds: [0],
       authors: pubkeys,
-    });
-    return result;
-  };
-  
-  export const fetchComments = async (eventIds: string[], pool: SimplePool) => {
-    let result = await pool.querySync(pollRelays, {
-      kinds: [1],
-      "#e": eventIds,
-    });
-    return result;
-  };
-  
-  export const fetchLikes = async (eventIds: string[], pool: SimplePool) => {
-    let result = await pool.querySync(pollRelays, {
-      kinds: [7],
-      "#e": eventIds,
-    });
-    return result;
-  };
-  
-  export const fetchZaps = async (eventIds: string[], pool: SimplePool) => {
-    let result = await pool.querySync(pollRelays, {
-      kinds: [9735],
-      "#e": eventIds,
     });
     return result;
   };

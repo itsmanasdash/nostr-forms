@@ -1,8 +1,8 @@
 import { SimplePool } from "nostr-tools";
-import { fetchComments, fetchLikes, fetchUserProfiles, fetchZaps } from "./poll";
+import { fetchUserProfiles } from "./poll";
 import { Event } from "nostr-tools";
 
-type QueueType = "profiles" | "comments" | "likes" | "zaps";
+type QueueType = "profiles";
 
 export class Throttler {
   private queue: string[] = [];
@@ -35,11 +35,11 @@ export class Throttler {
   }
 
   private startProcessing() {
-    if (this.intervalId) return; // Already processing
+    if (this.intervalId) return; 
 
     this.intervalId = setInterval(() => {
       this.processQueue();
-    }, this.delay); // Process every second
+    }, this.delay); 
   }
 
   private async processQueue() {
@@ -52,16 +52,6 @@ export class Throttler {
     const IdsToProcess = this.queue.splice(0, this.limit);
     if (this.queueType === "profiles") {
       results = await fetchUserProfiles(IdsToProcess, this.pool);
-    }
-    if (this.queueType === "comments") {
-      results = await fetchComments(IdsToProcess, this.pool);
-    }
-    if (this.queueType === "likes") {
-      results = await fetchLikes(IdsToProcess, this.pool);
-    }
-
-    if (this.queueType === "zaps") {
-      results = await fetchZaps(IdsToProcess, this.pool);
     }
 
     this.callback(results);
