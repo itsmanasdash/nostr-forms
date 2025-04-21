@@ -1,7 +1,5 @@
 import { Card, Progress, Space, Typography, Row, Col } from "antd";
 import { Event } from "nostr-tools";
-import { useEffect } from "react";
-import { useApplicationContext } from "../../hooks/useApplicationContext";
 
 const { Text } = Typography;
 
@@ -17,17 +15,6 @@ export const Analytics: React.FC<AnalyticsProps> = ({
   const label =
     pollEvent.tags.find((t) => t[0] === "label")?.[1] || pollEvent.content;
   const options = pollEvent.tags.filter((t) => t[0] === "option");
-
-  const { profiles, fetchUserProfile } = useApplicationContext();
-
-  useEffect(() => {
-    responses.forEach((event) => {
-      const responderId = event.pubkey;
-      if (!profiles?.get(responderId)) {
-        fetchUserProfile(responderId);
-      }
-    });
-  }, []);
 
   const calculateResults = () => {
     const results: { count: number; responders: Set<string> }[] = options.map(

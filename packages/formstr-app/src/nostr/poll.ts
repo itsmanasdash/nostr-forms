@@ -7,6 +7,16 @@ import { hexToBytes } from "@noble/hashes/utils";
     return result;
   };
   
+  export const fetchUserProfiles = async (
+    pubkeys: string[],
+    pool: SimplePool
+  ) => {
+    let result = await pool.querySync(pollRelays, {
+      kinds: [0],
+      authors: pubkeys,
+    });
+    return result;
+  };
   
   export const findPubkey = async (secret?: string) => {
     let secretKey;

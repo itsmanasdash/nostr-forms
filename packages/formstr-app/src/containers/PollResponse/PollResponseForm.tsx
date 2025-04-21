@@ -39,7 +39,7 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
   const [showResults, setShowResults] = useState<boolean>(false);
   const [filterPubkeys, setFilterPubkeys] = useState<string[]>([]);
   const [showPoWModal, setShowPoWModal] = useState<boolean>(false);
-  const { profiles, poolRef, fetchUserProfile } = useApplicationContext();
+  const { profiles, poolRef } = useApplicationContext();
   const { pubkey, privatekey, setPrivatekey } = useProfileContext();
   const difficulty = Number(
     pollEvent.tags.filter((t) => t[0] === "PoW")?.[0]?.[1]
@@ -68,14 +68,10 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
           ?.map((t) => t[1]) || []
       );
     }
-    if (!profiles?.has(pollEvent.pubkey)) {
-      fetchUserProfile(pollEvent.pubkey);  
-    }
   }, [
     pollEvent,
     profiles,
-    poolRef,
-    fetchUserProfile,  
+    poolRef, 
     userResponse,
   ]);
 
