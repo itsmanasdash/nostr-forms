@@ -1,23 +1,6 @@
 import { EventTemplate, finalizeEvent, getPublicKey, SimplePool , Event } from "nostr-tools";
-import { pollRelays } from "./common";
 import { hexToBytes } from "@noble/hashes/utils";
 
-  export const fetchUserProfile = async (pubkey: string, pool: SimplePool) => {
-    let result = await pool.get(pollRelays, { kinds: [0], authors: [pubkey] });
-    return result;
-  };
-  
-  export const fetchUserProfiles = async (
-    pubkeys: string[],
-    pool: SimplePool
-  ) => {
-    let result = await pool.querySync(pollRelays, {
-      kinds: [0],
-      authors: pubkeys,
-    });
-    return result;
-  };
-  
   export const findPubkey = async (secret?: string) => {
     let secretKey;
     let pubkey;
