@@ -30,7 +30,6 @@ export const ProfileContext = createContext<ProfileContextType | undefined>(
 );
 
 export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
-  // const [user, setUser] = useState<User | null>(null);
   const [pubkey, setPubkey] = useState<string | undefined>(undefined);
   const [usingNip07, setUsingNip07] = useState(false);
   const [privatekey, setPrivatekey] = useState<string | undefined>(undefined);

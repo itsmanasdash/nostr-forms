@@ -4,7 +4,6 @@ import Routing from "./components/Routing";
 import { ProfileProvider } from "./provider/ProfileProvider";
 import { ApplicationProvider } from "./provider/ApplicationProvider";
 
-
 function App() {
   return (
     <HashRouter>

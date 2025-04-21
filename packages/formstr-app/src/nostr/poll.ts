@@ -6,42 +6,7 @@ import { hexToBytes } from "@noble/hashes/utils";
     let result = await pool.get(pollRelays, { kinds: [0], authors: [pubkey] });
     return result;
   };
-
-  export async function parseContacts(contactList: Event) {
-    if (contactList) {
-      return contactList.tags.reduce<Set<string>>((result, [name, value]) => {
-        if (name === "p") {
-          result.add(value);
-        }
-        return result;
-      }, new Set<string>());
-    }
-    return new Set<string>();
-  }
   
-  export const fetchUserProfiles = async (
-    pubkeys: string[],
-    pool: SimplePool
-  ) => {
-    let result = await pool.querySync(pollRelays, {
-      kinds: [0],
-      authors: pubkeys,
-    });
-    return result;
-  };
-  
-  export function openProfileTab(npub: `npub1${string}`) {
-    let url = `https://njump.me/${npub}`;
-    window?.open(url, "_blank")?.focus();
-  }
-  
-  export const getATagFromEvent = (event: Event) => {
-    let d_tag = event.tags.find((tag) => tag[0] === "d")?.[1];
-    let a_tag = d_tag
-      ? `${event.kind}:${event.pubkey}:${d_tag}`
-      : `${event.kind}:${event.pubkey}:`;
-    return a_tag;
-  };
   
   export const findPubkey = async (secret?: string) => {
     let secretKey;

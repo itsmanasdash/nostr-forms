@@ -43,7 +43,6 @@ export const KINDS = {
   formTemplate: 30168,
 };
 
-
 export type Profile = {
   event: Event;
   picture: string;
