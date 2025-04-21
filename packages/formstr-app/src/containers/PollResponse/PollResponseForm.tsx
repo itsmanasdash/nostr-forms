@@ -10,13 +10,11 @@ import {
   Progress,
 } from "antd";
 import { Event } from "nostr-tools";
-import { generateSecretKey, getPublicKey } from "nostr-tools";
 import { signEvent } from "../../nostr/poll";
 import { pollRelays } from "../../nostr/common";
 import { FetchResults } from "./FetchResults";
 import { SingleChoiceOptions } from "./SingleChoiceOptions";
 import { MultipleChoiceOptions } from "./MultipleChoiceOptions";
-import { bytesToHex } from "@noble/hashes/utils";
 import dayjs from "dayjs";
 import { useMiningWorker } from "../../hooks/useMinningWorker/useMinningWorker";
 import PollTimer from "./PollTimer";
@@ -40,7 +38,7 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
   const [filterPubkeys, setFilterPubkeys] = useState<string[]>([]);
   const [showPoWModal, setShowPoWModal] = useState<boolean>(false);
   const { profiles, poolRef } = useApplicationContext();
-  const { pubkey, privatekey, setPrivatekey } = useProfileContext();
+  const { pubkey, privatekey } = useProfileContext();
   const difficulty = Number(
     pollEvent.tags.filter((t) => t[0] === "PoW")?.[0]?.[1]
   );
@@ -88,12 +86,13 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
   };
 
   const handleSubmitResponse = async () => {
-    let responseUser = pubkey;
+    // Check if user is logged in
     if (!pubkey) {
-      alert("login not found, submitting anonymously");
-      let secret = generateSecretKey();
-      let pubkey = getPublicKey(secret);
-      setPrivatekey(bytesToHex(secret));
+      Modal.warning({
+        title: 'Login Required',
+        content: 'You must be logged in to vote in this poll.',
+      });
+      return;
     }
 
     const responseEvent = {
@@ -104,8 +103,9 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
         ...responses.map((response) => ["response", response]),
       ],
       created_at: Math.floor(Date.now() / 1000),
-      pubkey: pubkey!,
+      pubkey: pubkey,
     };
+    
     let useEvent = responseEvent;
     if (difficulty) {
       setShowPoWModal(true);
@@ -118,16 +118,17 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
     }
 
     setShowPoWModal(false);
-    const signedResponse = await signEvent(useEvent, privatekey!);
+    const signedResponse = await signEvent(useEvent, privatekey);
     let relays = pollEvent.tags
       .filter((t) => t[0] === "relay")
       .map((t) => t[1]);
     relays = relays.length === 0 ? pollRelays : relays;
+    
     let finalEvent;
     if (signedResponse) {
       finalEvent = {
         ...signedResponse,
-        pubkey: pubkey!
+        pubkey: pubkey
       };
     }
     poolRef.current.publish(relays, finalEvent!);
