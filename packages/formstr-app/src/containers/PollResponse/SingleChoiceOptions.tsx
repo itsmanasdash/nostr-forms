@@ -1,6 +1,6 @@
-import { Radio } from "antd";
+import { Radio , Typography } from "antd";
 import type { RadioChangeEvent } from "antd";
-import { TextWithImages } from "../../components/Common/TextWithImages";
+const { Text } = Typography;
 
 interface SingleChoiceOptionsProps {
   options: Array<[string, string, string]>;
@@ -28,7 +28,9 @@ export const SingleChoiceOptions: React.FC<SingleChoiceOptionsProps> = ({
           key={option[1]} 
           value={option[1]}
         >
-          <TextWithImages content={option[2]} />
+          <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {option[2]}
+            </Text>
         </Radio>
       ))}
     </Radio.Group>

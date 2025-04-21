@@ -3,30 +3,19 @@ import {
   Button,
   Card,
   Form,
-  Dropdown,
-  Avatar,
   Typography,
   Space,
   Divider,
   Modal,
   Progress,
 } from "antd";
-import {
-  MoreOutlined,
-  CopyOutlined,
-  LinkOutlined,
-} from "@ant-design/icons";
 import { Event } from "nostr-tools";
-import { generateSecretKey, getPublicKey, nip19 } from "nostr-tools";
+import { generateSecretKey, getPublicKey } from "nostr-tools";
 import { signEvent } from "../../nostr/poll";
 import { pollRelays } from "../../nostr/common";
-import { openProfileTab } from "../../nostr/poll";
 import { FetchResults } from "./FetchResults";
 import { SingleChoiceOptions } from "./SingleChoiceOptions";
 import { MultipleChoiceOptions } from "./MultipleChoiceOptions";
-import { DEFAULT_IMAGE_URL } from "../../utils/constants";
-import { TextWithImages } from "../../components/Common/TextWithImages";
-import { Filters } from  "./Filter";
 import { bytesToHex } from "@noble/hashes/utils";
 import dayjs from "dayjs";
 import { useMiningWorker } from "../../hooks/useMinningWorker/useMinningWorker";
@@ -50,8 +39,8 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
   const [showResults, setShowResults] = useState<boolean>(false);
   const [filterPubkeys, setFilterPubkeys] = useState<string[]>([]);
   const [showPoWModal, setShowPoWModal] = useState<boolean>(false);
-  const { profiles, poolRef, fetchUserProfileThrottled } = useApplicationContext();
-  const { user, setUser } = useProfileContext();
+  const { profiles, poolRef, fetchUserProfile } = useApplicationContext();
+  const { pubkey, privatekey, setPrivatekey } = useProfileContext();
   const difficulty = Number(
     pollEvent.tags.filter((t) => t[0] === "PoW")?.[0]?.[1]
   );
@@ -80,13 +69,13 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
       );
     }
     if (!profiles?.has(pollEvent.pubkey)) {
-      fetchUserProfileThrottled(pollEvent.pubkey);
+      fetchUserProfile(pollEvent.pubkey);  
     }
   }, [
     pollEvent,
     profiles,
     poolRef,
-    fetchUserProfileThrottled,
+    fetchUserProfile,  
     userResponse,
   ]);
 
@@ -103,13 +92,12 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
   };
 
   const handleSubmitResponse = async () => {
-    let responseUser = user;
-    if (!user) {
+    let responseUser = pubkey;
+    if (!pubkey) {
       alert("login not found, submitting anonymously");
       let secret = generateSecretKey();
       let pubkey = getPublicKey(secret);
-      responseUser = { pubkey: pubkey, privateKey: bytesToHex(secret) };
-      setUser(responseUser);
+      setPrivatekey(bytesToHex(secret));
     }
 
     const responseEvent = {
@@ -120,7 +108,7 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
         ...responses.map((response) => ["response", response]),
       ],
       created_at: Math.floor(Date.now() / 1000),
-      pubkey: responseUser!.pubkey,
+      pubkey: pubkey!,
     };
     let useEvent = responseEvent;
     if (difficulty) {
@@ -134,7 +122,7 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
     }
 
     setShowPoWModal(false);
-    const signedResponse = await signEvent(useEvent, responseUser!.privateKey);
+    const signedResponse = await signEvent(useEvent, privatekey!);
     let relays = pollEvent.tags
       .filter((t) => t[0] === "relay")
       .map((t) => t[1]);
@@ -143,7 +131,7 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
     if (signedResponse) {
       finalEvent = {
         ...signedResponse,
-        pubkey: responseUser!.pubkey
+        pubkey: pubkey!
       };
     }
     poolRef.current.publish(relays, finalEvent!);
@@ -154,47 +142,9 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
     setShowResults(!showResults);
   };
 
-  const copyRawEvent = async () => {
-    const rawEvent = JSON.stringify(pollEvent, null, 2);
-    try {
-      await navigator.clipboard.writeText(rawEvent);
-      alert("Event copied to clipboard!");
-    } catch (error) {
-      console.error("Failed to copy event:", error);
-      alert("Failed to copy raw event.");
-    }
-  };
-
-  const copyPollUrl = async () => {
-    try {
-      await navigator.clipboard.writeText(
-        `${window.location.origin}/respond/${pollEvent.id}`
-      );
-      alert("Poll URL copied to clipboard!");
-    } catch (error) {
-      console.error("Failed to copy event:", error);
-      alert("Failed to copy raw event.");
-    }
-  };
-
   const label =
     pollEvent.tags.find((t) => t[0] === "label")?.[1] || pollEvent.content;
   const options = pollEvent.tags.filter((t) => t[0] === "option");
-
-  const menuItems = [
-    {
-      key: 'copyUrl',
-      icon: <LinkOutlined />,
-      label: 'Copy URL',
-      onClick: copyPollUrl
-    },
-    {
-      key: 'copyRaw',
-      icon: <CopyOutlined />,
-      label: 'Copy Raw Event',
-      onClick: copyRawEvent
-    }
-  ];
 
   const hasSelectedResponse = responses.length > 0;
 
@@ -212,13 +162,10 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
             }}
             title={
               <div style={{ display: "flex", alignItems: "center"}}>
-                <Avatar
-                  src={profiles?.get(pollEvent.pubkey)?.picture || DEFAULT_IMAGE_URL}
-                  style={{ marginRight: 12, cursor: "pointer" }}
-                  onClick={() => openProfileTab(nip19.npubEncode(pollEvent.pubkey))}
-                />
                 <div style={{ flex: 1 }}>
-                  <TextWithImages content={label} />
+                  <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                    {label}
+                  </Text>
                   <div style={{ marginTop: 8 }}>
                     <Text type="secondary" style={{ marginRight: 16 }}>
                       Required difficulty: {difficulty || 0} bits
@@ -226,12 +173,6 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
                     <PollTimer pollExpiration={pollExpiration} />
                   </div>
                 </div>
-                <Dropdown menu={{ items: menuItems }} trigger={['click']}>
-                  <Button 
-                    type="text" 
-                    icon={<MoreOutlined />}
-                  />
-                </Dropdown>
               </div>
             }
             bodyStyle={{ padding: 16 }}
@@ -279,13 +220,6 @@ const PollResponseForm: React.FC<PollResponseFormProps> = ({
                 <div></div>
               )}
               <Space>
-                {showResults && (
-                  <Filters
-                    onChange={(pubkeys: string[]) => {
-                      setFilterPubkeys(pubkeys);
-                    }}
-                  />
-                )}
                 <Button onClick={toggleResults} type={showResults ? "default" : "primary"}>
                   {showResults ? "Hide Results" : "Results"}
                 </Button>

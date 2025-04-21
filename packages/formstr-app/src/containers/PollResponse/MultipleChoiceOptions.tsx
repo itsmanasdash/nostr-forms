@@ -1,5 +1,6 @@
-import { Checkbox } from "antd";
-import { TextWithImages } from "../../components/Common/TextWithImages";
+import { Checkbox, Typography } from "antd";
+
+const { Text } = Typography;
 
 interface MultipleChoiceOptionsProps {
   options: Array<[string, string, string]>;
@@ -15,7 +16,7 @@ export const MultipleChoiceOptions: React.FC<MultipleChoiceOptionsProps> = ({
   const onChange = (value: string) => {
     handleResponseChange(value);
   };
-
+  
   return (
     <div>
       {options.map((option) => (
@@ -25,7 +26,9 @@ export const MultipleChoiceOptions: React.FC<MultipleChoiceOptionsProps> = ({
             checked={response.includes(option[1])}
             onChange={() => onChange(option[1])}
           >
-            <TextWithImages content={option[2]} />
+            <Text style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {option[2]}
+            </Text>
           </Checkbox>
         </div>
       ))}

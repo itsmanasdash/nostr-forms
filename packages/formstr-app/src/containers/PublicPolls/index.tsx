@@ -8,6 +8,8 @@ import { useApplicationContext } from "../../hooks/useApplicationContext";
 import { pollRelays } from "../../nostr/common";
 import PollResponseForm from "../PollResponse/PollResponseForm";
 import { useProfileContext } from "../../hooks/useProfileContext";
+import { ROUTES } from "../../constants/routes";
+import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
 
@@ -52,11 +54,11 @@ const Feed = ({ events, userResponses }: {
 
 // Main component to handle data fetching and preparation
 const PollFeedPage = () => {
-  const { user } = useProfileContext();
+  const navigate = useNavigate();
+  const { pubkey } = useProfileContext();
   const { poolRef } = useApplicationContext();
   const [pollEvents, setPollEvents] = useState<Event[] | undefined>();
   const [userResponses, setUserResponses] = useState<Event[] | undefined>();
-  const [eventSource, setEventSource] = useState<"global" | "following">("global");
   const [feedSubscription, setFeedSubscription] = useState<SubCloser | undefined>();
   const [loadingMore, setLoadingMore] = useState(false);
 
@@ -138,10 +140,6 @@ const PollFeedPage = () => {
       limit: 10,
     };
 
-    if (eventSource === "following" && user?.follows?.length) {
-      filter.authors = user?.follows;
-    }
-
     let newCloser = poolRef.current.subscribeMany(pollRelays, [filter], {
       onevent: (event: Event) => {
         handleFeedEvents(event, newCloser);
@@ -154,7 +152,7 @@ const PollFeedPage = () => {
     const filters: Filter[] = [
       {
         kinds: [1018, 1070],
-        authors: [user!.pubkey],
+        authors: [pubkey!],
         limit: 40,
       },
     ];
@@ -174,11 +172,11 @@ const PollFeedPage = () => {
       if (newCloser) newCloser.close();
       if (feedSubscription) feedSubscription.close();
     };
-  }, [poolRef, eventSource]);
+  }, [poolRef]);
 
   useEffect(() => {
     let closer: SubCloser | undefined;
-    if (user && !userResponses && poolRef && !closer) {
+    if (pubkey && !userResponses && poolRef && !closer) {
       closer = fetchResponseEvents();
     }
     return () => {
@@ -186,24 +184,24 @@ const PollFeedPage = () => {
         closer.close();
       }
     };
-  }, [user, poolRef]);
+  }, [pubkey, poolRef]);
+
+  const handleGlobalChange = (value: string) => {
+    if (value === 'forms') {
+      navigate(ROUTES.PUBLIC_FORMS);
+    }
+  };
 
   return (
-    <div style={{ maxWidth: 800, margin: '0 auto', padding: '20px' }}>
-
-      <div style={{ textAlign: 'center', marginBottom: 20 }}>
+    <div style={{ maxWidth: 800, margin: '0 auto', padding: '20px', paddingTop: 0 }}>
+      <div style={{ textAlign: 'center', marginTop: 20, marginBottom: 20 }}>
         <Select
           style={{ width: 240 }}
-          value={eventSource}
-          onChange={(value) => setEventSource(value)}
+          defaultValue="polls"
+          onChange={handleGlobalChange}
         >
-          <Option value="global">Global Polls</Option>
-          <Option 
-            value="following" 
-            disabled={!user || !user.follows || user.follows.length === 0}
-          >
-            Polls from people you follow
-          </Option>
+          <Option value="forms">Global Forms</Option>
+          <Option value="polls">Global Polls</Option>
         </Select>
       </div>
       

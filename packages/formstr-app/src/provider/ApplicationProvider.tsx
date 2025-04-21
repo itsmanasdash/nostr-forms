@@ -1,7 +1,7 @@
 import React, { createContext, FC, ReactNode, useRef, useState } from "react";
-import { SimplePool , Event } from "nostr-tools";
+import { SimplePool, Event } from "nostr-tools";
 import { Profile } from "../nostr/types";
-import { Throttler } from "../nostr/requestThrottler";
+import { pollRelays } from "../nostr/common";
 
 interface ApplicationProviderProps {
   children?: ReactNode;
@@ -12,9 +12,9 @@ export interface ApplicationContextType {
   isTemplateModalOpen: boolean;
   openTemplateModal: () => void;
   closeTemplateModal: () => void;
-  profiles: Map<string, Profile> | undefined;
+  profiles: Map<string, Profile>;
   addEventToProfiles: (event: Event) => void;
-  fetchUserProfileThrottled: (pubkey: string) => void;
+  fetchUserProfile: (pubkey: string) => void;
 }
 
 export const ApplicationContext = createContext<
@@ -24,7 +24,6 @@ export const ApplicationContext = createContext<
 export const ApplicationProvider: FC<ApplicationProviderProps> = ({
   children,
 }) => {
-
   const poolRef = useRef(new SimplePool());
   const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
   const openTemplateModal = () => setIsTemplateModalOpen(true); 
@@ -32,33 +31,53 @@ export const ApplicationProvider: FC<ApplicationProviderProps> = ({
 
   const [profiles, setProfiles] = useState<Map<string, Profile>>(new Map());
 
-
   const addEventToProfiles = (event: Event) => {
     if (profiles.has(event.pubkey)) return;
     try {
       let content = JSON.parse(event.content);
-      profiles.set(event.pubkey, { ...content, event: event });
-      setProfiles(profiles);
+      const updatedProfiles = new Map(profiles);
+      updatedProfiles.set(event.pubkey, { ...content, event: event });
+      setProfiles(updatedProfiles);
     } catch (e) {
       console.error("Error parsing event", e);
     }
   };
 
   const addEventsToProfiles = (events: Event[]) => {
+    const updatedProfiles = new Map(profiles);
+    let hasUpdates = false;
+
     events.forEach((event: Event) => {
-      addEventToProfiles(event);
+      if (!updatedProfiles.has(event.pubkey)) {
+        try {
+          let content = JSON.parse(event.content);
+          updatedProfiles.set(event.pubkey, { ...content, event: event });
+          hasUpdates = true;
+        } catch (e) {
+          console.error("Error parsing event", e);
+        }
+      }
     });
+
+    if (hasUpdates) {
+      setProfiles(updatedProfiles);
+    }
   };
 
-
-  const ProfileThrottler = useRef(
-    new Throttler(50, poolRef.current, addEventsToProfiles, "profiles", 500)
-  );
-
-  const fetchUserProfileThrottled = (pubkey: string) => {
-    ProfileThrottler.current.addId(pubkey);
+  const fetchUserProfile = async (pubkey: string) => {
+    try {
+      const events = await poolRef.current.querySync(pollRelays, {
+        kinds: [0],
+        authors: [pubkey]
+      });
+      
+      if (events && events.length > 0) {
+        addEventsToProfiles(events);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
   };
-
 
   const contextValue: ApplicationContextType = {
     poolRef,
@@ -67,11 +86,11 @@ export const ApplicationProvider: FC<ApplicationProviderProps> = ({
     closeTemplateModal,
     profiles,
     addEventToProfiles,
-    fetchUserProfileThrottled,
+    fetchUserProfile,
   };
 
   return (
-    <ApplicationContext.Provider value={ contextValue }>
+    <ApplicationContext.Provider value={contextValue}>
       {children}
     </ApplicationContext.Provider>
   );

@@ -18,13 +18,13 @@ export const Analytics: React.FC<AnalyticsProps> = ({
     pollEvent.tags.find((t) => t[0] === "label")?.[1] || pollEvent.content;
   const options = pollEvent.tags.filter((t) => t[0] === "option");
 
-  const { profiles, fetchUserProfileThrottled } = useApplicationContext();
+  const { profiles, fetchUserProfile } = useApplicationContext();
 
   useEffect(() => {
     responses.forEach((event) => {
       const responderId = event.pubkey;
       if (!profiles?.get(responderId)) {
-        fetchUserProfileThrottled(responderId);
+        fetchUserProfile(responderId);
       }
     });
   }, []);
