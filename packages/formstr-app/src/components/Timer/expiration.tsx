@@ -1,4 +1,4 @@
-// PollTimer.tsx
+
 import React, { useEffect, useState } from "react";
 import dayjs from "dayjs";
 import moment from "moment";
@@ -6,40 +6,40 @@ import { Typography } from "antd";
 
 const { Text } = Typography;
 
-interface PollTimerProps {
-  pollExpiration: string | undefined;
+interface TimerProps {
+  Expiration: string | undefined;
 }
 
-const calculateTimeRemaining = (pollExpiration: string) => {
-  if (!pollExpiration) return null;
-  const expirationDate = dayjs.unix(Number(pollExpiration));
+const calculateTimeRemaining = (Expiration: string) => {
+  if (!Expiration) return null;
+  const expirationDate = dayjs.unix(Number(Expiration));
   return expirationDate.diff(dayjs(), "milliseconds");
 };
 
-const PollTimer: React.FC<PollTimerProps> = ({ pollExpiration }) => {
+const Timer: React.FC<TimerProps> = ({ Expiration }) => {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!pollExpiration) return;
+    if (!Expiration) return;
 
     const updateTimeRemaining = () => {
-      const remaining = calculateTimeRemaining(pollExpiration);
+      const remaining = calculateTimeRemaining(Expiration);
       setTimeRemaining(remaining);
     };
 
-    updateTimeRemaining(); // Initial call to set the time immediately
+    updateTimeRemaining(); 
 
-    const interval = setInterval(updateTimeRemaining, 1000); // Update every second
+    const interval = setInterval(updateTimeRemaining, 1000);
 
     return () => clearInterval(interval);
-  }, [pollExpiration]);
+  }, [Expiration]);
 
-  const isPollConcluded = timeRemaining !== null && timeRemaining <= 0;
+  const isConcluded = timeRemaining !== null && timeRemaining <= 0;
 
   const renderExpirationMessage = () => {
-    if (isPollConcluded) {
+    if (isConcluded) {
       return `Poll concluded at: ${moment
-        .unix(Number(pollExpiration))
+        .unix(Number(Expiration))
         .format("YYYY-MM-DD HH:mm")}`;
     }
 
@@ -65,4 +65,4 @@ const PollTimer: React.FC<PollTimerProps> = ({ pollExpiration }) => {
   return <Text>{renderExpirationMessage()}</Text>;
 };
 
-export default PollTimer;
+export default Timer;

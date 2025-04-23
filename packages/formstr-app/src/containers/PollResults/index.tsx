@@ -2,11 +2,13 @@ import { useNavigate, useParams } from "react-router-dom";
 import { Filter } from "nostr-tools";
 import { Event } from "nostr-tools";
 import { SimplePool } from "nostr-tools";
-import { pollRelays } from "../../nostr/common";
+import { getDefaultRelays } from "../../nostr/common";
 import { useEffect, useState } from "react";
 import { Spin } from "antd";
 import { Analytics } from "./Analytics";
 import { SubCloser } from "nostr-tools";
+
+const defaultRelays = getDefaultRelays();
 
 export const PollResults = () => {
   let { eventId } = useParams();
@@ -52,7 +54,7 @@ export const PollResults = () => {
       ids: [eventId!],
     };
     let pool = new SimplePool();
-    let closer = pool.subscribeMany(pollRelays, [resultFilter, pollFilter], {
+    let closer = pool.subscribeMany(defaultRelays, [resultFilter, pollFilter], {
       onevent: handleResultEvent,
     });
     return closer;

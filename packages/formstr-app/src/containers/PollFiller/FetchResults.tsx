@@ -1,11 +1,13 @@
 import { Filter } from "nostr-tools";
 import { Event } from "nostr-tools";
-import { pollRelays } from "../../nostr/common";
+import { getDefaultRelays } from "@formstr/sdk";
 import { useEffect, useState } from "react";
 import { Analytics } from "../PollResults/Analytics";
 import { SubCloser } from "nostr-tools";
 import { nip13 } from "nostr-tools";
 import { useApplicationContext } from "../../hooks/useApplicationContext";
+
+const defaultRelays = getDefaultRelays();
 
 interface FetchResultsProps {
   pollEvent: Event;
@@ -55,7 +57,7 @@ export const FetchResults: React.FC<FetchResultsProps> = ({
     }
     let resultFilter: Filter = {
       "#e": [pollEvent.id],
-      kinds: [1070, 1018],
+      kinds: [1018],
     };
     if (difficulty) {
       resultFilter["#W"] = [difficulty.toString()];
@@ -66,7 +68,7 @@ export const FetchResults: React.FC<FetchResultsProps> = ({
     if (pollExpiration) {
       resultFilter.until = Number(pollExpiration);
     }
-    const useRelays = relays?.length ? relays : pollRelays;
+    const useRelays = relays?.length ? relays : defaultRelays;
     let newCloser = poolRef.current.subscribeMany(useRelays, [resultFilter], {
       onevent: handleResultEvent,
     });

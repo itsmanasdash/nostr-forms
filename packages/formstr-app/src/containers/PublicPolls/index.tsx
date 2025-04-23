@@ -5,13 +5,14 @@ import { SubCloser } from "nostr-tools";
 import { verifyEvent } from "nostr-tools";
 import { Select, Button, Card, Space } from "antd";
 import { useApplicationContext } from "../../hooks/useApplicationContext";
-import { pollRelays } from "../../nostr/common";
-import PollResponseForm from "../PollResponse/PollResponseForm";
+import { getDefaultRelays } from "../../nostr/common";
+import PollCard from "../PollFiller/PollCard";
 import { useProfileContext } from "../../hooks/useProfileContext";
 import { ROUTES } from "../../constants/routes";
 import { useNavigate } from "react-router-dom";
 
 const { Option } = Select;
+const defaultRelays = getDefaultRelays();
 
 // Feed component to render polls
 const Feed = ({ events, userResponses }: { 
@@ -38,7 +39,7 @@ const Feed = ({ events, userResponses }: {
           if (eventIdsMap[eventId].kind === 1068) {
             return (
               <Card key={eventId} style={{ marginBottom: 16 }}>
-                <PollResponseForm
+                <PollCard
                   pollEvent={eventIdsMap[eventId]}
                   userResponse={userResponses.get(eventId)}
                 />
@@ -91,7 +92,7 @@ const PollFeedPage = () => {
     
     if (feedSubscription) feedSubscription.close();
     
-    let newCloser = poolRef.current.subscribeMany(pollRelays, [filter], {
+    let newCloser = poolRef.current.subscribeMany(defaultRelays, [filter], {
       onevent: (event : Event) => {
         handleFeedEvents(event, newCloser);
         setLoadingMore(false);
@@ -140,7 +141,7 @@ const PollFeedPage = () => {
       limit: 10,
     };
 
-    let newCloser = poolRef.current.subscribeMany(pollRelays, [filter], {
+    let newCloser = poolRef.current.subscribeMany(defaultRelays, [filter], {
       onevent: (event: Event) => {
         handleFeedEvents(event, newCloser);
       },
@@ -151,12 +152,12 @@ const PollFeedPage = () => {
   const fetchResponseEvents = () => {
     const filters: Filter[] = [
       {
-        kinds: [1018, 1070],
+        kinds: [1018],
         authors: [pubkey!],
         limit: 40,
       },
     ];
-    let closer = poolRef.current.subscribeMany(pollRelays, filters, {
+    let closer = poolRef.current.subscribeMany(defaultRelays, filters, {
       onevent: handleResponseEvents,
     });
     return closer;

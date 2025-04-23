@@ -20,8 +20,6 @@ export interface ProfileContextType {
   pubkey?: string;
   requestPubkey: () => void;
   logout: () => void;
-  privatekey?: string;
-  setPrivatekey: (key: string | undefined) => void;
   userRelays: string[];
 }
 
@@ -36,7 +34,6 @@ export const ProfileContext = createContext<ProfileContextType | undefined>(
 export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
   const [pubkey, setPubkey] = useState<string | undefined>(undefined);
   const [usingNip07, setUsingNip07] = useState(false);
-  const [privatekey, setPrivatekey] = useState<string | undefined>(undefined);
   const [userRelays, setUserRelays] = useState<string[]>([]);
 
   const { poolRef } = useApplicationContext();
@@ -86,7 +83,7 @@ export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
   };
 
   return (
-    <ProfileContext.Provider value={{ pubkey, requestPubkey, logout , privatekey , setPrivatekey , userRelays}}>
+    <ProfileContext.Provider value={{ pubkey, requestPubkey, logout , userRelays}}>
       {children}
       <Modal
         open={usingNip07}
