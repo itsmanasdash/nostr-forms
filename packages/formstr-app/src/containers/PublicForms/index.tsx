@@ -40,7 +40,6 @@ function PublicForms() {
     
   }, []);
 
-  // Filter forms based on search query
   const filteredForms = forms.filter(form => {
     const nameTag = form.tags.find((t) => t[0] === "name");
     const name = nameTag?.[1] ?? "[Untitled Form]";
@@ -49,7 +48,6 @@ function PublicForms() {
 
   return (
     <StyleWrapper>
-      {/* Search Bar */}
       <div style={{ 
         padding: '20px 30px 0 30px', 
         display: 'flex', 
