@@ -35,7 +35,7 @@ export const PollResults = () => {
     if (event.kind === 1068) {
       setPollEvent(event);
     }
-    if (event.kind === 1070 || event.kind === 1018) {
+    if (event.kind === 1018) {
       setResponses((prevResponses) => [...(prevResponses || []), event]);
     }
   };
@@ -47,7 +47,7 @@ export const PollResults = () => {
     }
     let resultFilter: Filter = {
       "#e": [eventId!],
-      kinds: [1070, 1018],
+      kinds: [1018],
     };
 
     let pollFilter: Filter = {
