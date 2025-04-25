@@ -1,6 +1,5 @@
 import { useNavigate, useParams } from "react-router";
 import { Typography } from "antd";
-import { ROUTES } from "../../constants/routes";
 import useFormBuilderContext from "../CreateFormNew/hooks/useFormBuilderContext";
 import { useEffect } from "react";
 import { Tag } from "../../nostr/types";
@@ -24,7 +23,7 @@ export const V1DraftsController = () => {
   useEffect(() => {
     if (!parsedDraft) return;
     initializeForm({ spec: parsedDraft.spec, id: parsedDraft.id });
-    navigate(ROUTES.CREATE_FORMS_NEW, {
+    navigate("/c/", {
       state: parsedDraft,
     });
   }, [encodedForm, initializeForm, navigate, parsedDraft]);

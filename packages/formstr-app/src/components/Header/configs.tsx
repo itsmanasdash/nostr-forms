@@ -5,7 +5,6 @@ import {
   PlusOutlined,
   InfoCircleOutlined,
 } from "@ant-design/icons";
-import { ROUTES } from "../../constants/routes";
 
 export const HEADER_MENU_KEYS = {
   PUBLIC_FORMS: "PUBLIC_FORMS",
@@ -24,7 +23,7 @@ export const HEADER_MENU = [
     key: HEADER_MENU_KEYS.PUBLIC_FORMS,
     label: "Global Forms",
     icon: (
-      <Link to={ROUTES.PUBLIC_FORMS}>
+      <Link to={"/public"}>
         <SearchOutlined />
       </Link>
     ),

@@ -21,7 +21,6 @@ import {
   getItem,
   setItem,
 } from "../../../utils/localStorage";
-import { ROUTES as GLOBAL_ROUTES } from "../../../constants/routes";
 import Markdown from "react-markdown";
 
 const { Text } = Typography;
@@ -215,7 +214,7 @@ export const FormFillerOld: React.FC<FormFillerProps> = ({
           isOpen={thankYouScreen}
           onClose={() => {
             if (!embedded) {
-              navigate(`${GLOBAL_ROUTES.DASHBOARD}`);
+              navigate("/dashboard");
             } else {
               setThankYouScreen(false);
             }

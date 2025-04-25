@@ -17,7 +17,6 @@ import { Drafts } from "./FormCards/Drafts";
 import { LocalForms } from "./FormCards/LocalForms";
 import { useNavigate } from "react-router-dom"; 
 import { availableTemplates, FormTemplate } from "../../templates";
-import { ROUTES } from "../../constants/routes";
 import { FormInitData } from "../CreateFormNew/providers/FormBuilder/typeDefs";
 import TemplateSelectorModal from "../../components/TemplateSelectorModal";
 import { createFormSpecFromTemplate } from "../../utils/formUtils";
@@ -89,7 +88,7 @@ export const Dashboard = () => {
   const handleTemplateClick = (template: FormTemplate) => {
     const { spec, id } = createFormSpecFromTemplate(template);
     const navigationState: FormInitData = { spec, id };
-    navigate(ROUTES.CREATE_FORMS_NEW, { state: navigationState });
+    navigate("/c/", { state: navigationState });
   };
 
   const renderForms = () => {

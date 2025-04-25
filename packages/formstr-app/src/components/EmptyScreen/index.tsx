@@ -3,7 +3,6 @@ import { Typography, Button } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import { ReactComponent as NoData } from "../../Images/no-forms.svg";
 import StyleWrapper from "./style";
-import { ROUTES } from "../../constants/routes";
 import { act } from "react-dom/test-utils";
 import { FormTemplate } from "../../templates";
 import TemplateCard from "../TemplateCard";
@@ -53,7 +52,7 @@ function EmptyScreen({ message, action, actionLabel, templates, onTemplateClick 
             onClick={() => {
               if (action) action();
               else {
-                navigate(ROUTES.CREATE_FORMS_NEW);
+                navigate("/c");
               }
             }}
           >

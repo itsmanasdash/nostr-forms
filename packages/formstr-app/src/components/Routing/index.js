@@ -80,6 +80,10 @@ function Routing() {
         path={`${ROUTES.DASHBOARD}/*`}
         element={withNostrHeaderWrapper(Dashboard)}
       />
+      <Route
+        path={`${ROUTES.CREATE_FORMS_NEW}/*`}
+        element={(CreateForm)}
+      />
     </Routes>
   );
 }
