@@ -1,10 +1,11 @@
 import { LoadingOutlined, DownOutlined } from "@ant-design/icons";
-import { Button, FormInstance, Dropdown, MenuProps } from "antd";
+import { Button, FormInstance, Dropdown, MenuProps, Modal } from "antd";
 import React, { useState } from "react";
 import { sendResponses } from "../../../nostr/common";
 import { RelayPublishModal } from "../../../components/RelayPublishModal/RelaysPublishModal";
-import { Event, generateSecretKey } from "nostr-tools";
+import { Event, generateSecretKey, getPublicKey, nip19 } from "nostr-tools";
 import { Response } from "../../../nostr/types";
+import { useProfileContext } from "../../../hooks/useProfileContext";
 
 interface SubmitButtonProps {
   selfSign: boolean | undefined;
@@ -30,6 +31,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [acceptedRelays, setAcceptedRelays] = useState<string[]>([]);
+  const { pubkey: userPubkey } = useProfileContext();
 
   const saveResponse = async (anonymous: boolean = true) => {
     let formId = formEvent.tags.find((t) => t[0] === "d")?.[1];
@@ -48,8 +50,16 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       }
     );
     let anonUser = null;
+    let submittedAs = '';
+    let tempNsec = '';
     if (anonymous) {
       anonUser = generateSecretKey();
+      tempNsec = nip19.nsecEncode(anonUser);
+      submittedAs = nip19.npubEncode(getPublicKey(anonUser));
+    } else {
+      anonUser = generateSecretKey();
+      tempNsec = nip19.nsecEncode(anonUser);
+      submittedAs = userPubkey ? nip19.npubEncode(userPubkey) : '';
     }
     sendResponses(
       pubKey,
@@ -61,7 +71,17 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       (url: string) => setAcceptedRelays((prev) => [...prev, url])
     ).then((res: any) => {
       setIsSubmitting(false);
-      onSubmit();
+      Modal.success({
+        title: 'Success',
+        content: (
+          <div>
+            <p>Form submitted successfully!</p>
+            <p>Submitted as: <strong>{submittedAs}</strong></p>
+            <p>Temporary nsec: <strong>{tempNsec}</strong></p>
+          </div>
+        ),
+        onOk: () => onSubmit(),
+      });
     });
   };
 
