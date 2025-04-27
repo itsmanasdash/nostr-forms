@@ -1,5 +1,5 @@
 import { LoadingOutlined, DownOutlined } from "@ant-design/icons";
-import { Button, FormInstance, Dropdown, MenuProps, Modal } from "antd";
+import { Button, FormInstance, Dropdown, MenuProps } from "antd";
 import React, { useState } from "react";
 import { sendResponses } from "../../../nostr/common";
 import { RelayPublishModal } from "../../../components/RelayPublishModal/RelaysPublishModal";
@@ -12,7 +12,7 @@ interface SubmitButtonProps {
   edit: boolean;
   form: FormInstance;
   formEvent: Event;
-  onSubmit: () => Promise<void>;
+  onSubmit: (submittedAs: string, tempNsec: string) => Promise<void>;
   disabled?: boolean;
   disabledMessage?: string;
   relays: string[];
@@ -50,16 +50,16 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       }
     );
     let anonUser = null;
-    let submittedAs = '';
-    let tempNsec = '';
+    let submittedAsValue = '';
+    let tempNsecValue = '';
     if (anonymous) {
       anonUser = generateSecretKey();
-      tempNsec = nip19.nsecEncode(anonUser);
-      submittedAs = nip19.npubEncode(getPublicKey(anonUser));
+      tempNsecValue = nip19.nsecEncode(anonUser);
+      submittedAsValue = nip19.npubEncode(getPublicKey(anonUser));
     } else {
       anonUser = generateSecretKey();
-      tempNsec = nip19.nsecEncode(anonUser);
-      submittedAs = userPubkey ? nip19.npubEncode(userPubkey) : '';
+      tempNsecValue = nip19.nsecEncode(anonUser);
+      submittedAsValue = userPubkey ? nip19.npubEncode(userPubkey) : '';
     }
     sendResponses(
       pubKey,
@@ -71,17 +71,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       (url: string) => setAcceptedRelays((prev) => [...prev, url])
     ).then((res: any) => {
       setIsSubmitting(false);
-      Modal.success({
-        title: 'Success',
-        content: (
-          <div>
-            <p>Form submitted successfully!</p>
-            <p>Submitted as: <strong>{submittedAs}</strong></p>
-            <p>Temporary nsec: <strong>{tempNsec}</strong></p>
-          </div>
-        ),
-        onOk: () => onSubmit(),
-      });
+      onSubmit(submittedAsValue, tempNsecValue);
     });
   };
 
