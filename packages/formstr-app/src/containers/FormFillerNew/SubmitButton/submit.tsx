@@ -3,15 +3,16 @@ import { Button, FormInstance, Dropdown, MenuProps } from "antd";
 import React, { useState } from "react";
 import { sendResponses } from "../../../nostr/common";
 import { RelayPublishModal } from "../../../components/RelayPublishModal/RelaysPublishModal";
-import { Event, generateSecretKey } from "nostr-tools";
+import { Event, generateSecretKey, getPublicKey, nip19 } from "nostr-tools";
 import { Response } from "../../../nostr/types";
+import { useProfileContext } from "../../../hooks/useProfileContext";
 
 interface SubmitButtonProps {
   selfSign: boolean | undefined;
   edit: boolean;
   form: FormInstance;
   formEvent: Event;
-  onSubmit: () => Promise<void>;
+  onSubmit: (submittedAs: string, tempNsec: string) => Promise<void>;
   disabled?: boolean;
   disabledMessage?: string;
   relays: string[];
@@ -30,6 +31,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [acceptedRelays, setAcceptedRelays] = useState<string[]>([]);
+  const { pubkey: userPubkey } = useProfileContext();
 
   const saveResponse = async (anonymous: boolean = true) => {
     let formId = formEvent.tags.find((t) => t[0] === "d")?.[1];
@@ -48,8 +50,16 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       }
     );
     let anonUser = null;
+    let submittedAsValue = '';
+    let tempNsecValue = '';
     if (anonymous) {
       anonUser = generateSecretKey();
+      tempNsecValue = nip19.nsecEncode(anonUser);
+      submittedAsValue = nip19.npubEncode(getPublicKey(anonUser));
+    } else {
+      anonUser = generateSecretKey();
+      tempNsecValue = nip19.nsecEncode(anonUser);
+      submittedAsValue = userPubkey ? nip19.npubEncode(userPubkey) : '';
     }
     sendResponses(
       pubKey,
@@ -61,7 +71,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
       (url: string) => setAcceptedRelays((prev) => [...prev, url])
     ).then((res: any) => {
       setIsSubmitting(false);
-      onSubmit();
+      onSubmit(submittedAsValue, tempNsecValue);
     });
   };
 
