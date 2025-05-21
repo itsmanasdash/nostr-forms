@@ -60,7 +60,7 @@ export const FormEventCard: React.FC<FormEventCardProps> = ({
   let settings: { description?: string } = {};
   if (publicForm || viewKey) {
     settings = JSON.parse(
-      tags.filter((t) => t[0] === "settings")?.[0]?.[1] || "{}",
+      tags.filter((t) => t[0] === "settings")?.[0]?.[1] || "{}"
     );
   }
 
@@ -68,7 +68,7 @@ export const FormEventCard: React.FC<FormEventCardProps> = ({
     const naddr = makeFormNAddr(
       pubKey,
       formId,
-      relays.length ? relays : ["wss://relay.damus.io"],
+      relays.length ? relays : ["wss://relay.damus.io"]
     );
     const formFillerUI = (await (await fetch("/api/form-filler-ui")).text())
       ?.replace("@naddr", naddr)
@@ -176,7 +176,7 @@ export const FormEventCard: React.FC<FormEventCardProps> = ({
           <Button
             onClick={(e) => {
               secretKey
-                ? navigate(responsePath(secretKey, formId, relay, viewKey))
+                ? navigate(responsePath(secretKey, formId, relays, viewKey))
                 : navigate(`/r/${pubKey}/${formId}`);
             }}
             type="dashed"
@@ -195,8 +195,8 @@ export const FormEventCard: React.FC<FormEventCardProps> = ({
                   pubKey,
                   formId,
                   relays.length ? relays : ["wss://relay.damus.io"],
-                  viewKey,
-                ),
+                  viewKey
+                )
               );
             }}
             style={{
