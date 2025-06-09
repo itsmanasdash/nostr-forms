@@ -1,4 +1,4 @@
-type Environment = "development" | "staging" | "production";
+type Environment = "development" | "staging" | "preview" | "production";
 
 interface Config {
   [key: string]: {
@@ -10,7 +10,7 @@ interface Config {
 import config from "./config.json";
 
 const env: Environment =
-  (process.env.REACT_APP_ENVIRONMENT as Environment) || "development";
+  (process.env.VERCEL_ENV as Environment) || "development";
 
 if (!config[env]) {
   throw new Error(`No configuration found for environment: ${env}`);
