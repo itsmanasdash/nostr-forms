@@ -50,22 +50,25 @@ export const CustomSlugForm = ({
 
   const handlePay = async () => {
     const payPath = `/api/generateInvoice`;
-    const apiURl = `${appConfig.apiBaseUrl}${payPath}`;
+    const apiUrl = `${appConfig.apiBaseUrl}${payPath}`;
+    console.log("TRYING API", apiUrl);
     try {
-      const authHeader = await generateAuthHeader(apiURl, "POST", {
+      const authHeader = await generateAuthHeader(apiUrl, "POST", {
         slug: slug,
         formId: formId,
         formPubkey,
         relays,
         viewKey,
       });
+      console.log("AUTH HEADER IS", authHeader);
       const res = await axios.post(
-        apiURl,
+        apiUrl,
         { slug, formId, formPubkey, relays, viewKey },
         {
           headers: { Authorization: authHeader },
         }
       );
+      console.log("APIR RESULT", res);
       const { invoice, paymentHash } = res.data;
       console.log("QR data is", invoice, paymentHash, res.data); // assume backend returns hash
       onInvoiceReady(invoice, paymentHash, slug); // pass hash instead of slug
