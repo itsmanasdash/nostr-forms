@@ -53,6 +53,7 @@ export const CustomSlugForm = ({
     const apiUrl = `${appConfig.apiBaseUrl}${payPath}`;
     console.log("TRYING API", apiUrl);
     try {
+      console.log("INSIDE TRY BLOCK");
       const authHeader = await generateAuthHeader(apiUrl, "POST", {
         slug: slug,
         formId: formId,
@@ -73,7 +74,7 @@ export const CustomSlugForm = ({
       console.log("QR data is", invoice, paymentHash, res.data); // assume backend returns hash
       onInvoiceReady(invoice, paymentHash, slug); // pass hash instead of slug
     } catch (err: any) {
-      setError(err.response?.data?.error || "Payment error");
+      setError(err.response?.data?.error || `Payment error: ${err}`);
     }
   };
 
