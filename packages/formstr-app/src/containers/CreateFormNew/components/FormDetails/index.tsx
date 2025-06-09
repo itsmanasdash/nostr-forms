@@ -1,5 +1,5 @@
 // FormDetails.tsx
-import { Modal, Card, Divider } from "antd";
+import { Modal, Card, Divider, Typography, Button } from "antd";
 import { useEffect, useState } from "react";
 import FormDetailsStyle from "./FormDetails.style";
 import { useProfileContext } from "../../../../hooks/useProfileContext";
@@ -12,8 +12,6 @@ import { EmbedTab } from "./EmbedTab";
 import { SaveStatus } from "./SaveStatus";
 import { saveToDevice, saveToMyForms } from "./utils/saveHelpers";
 import { CustomSlugForm } from "./payments/customSlugForm";
-import { ZapQRCodeModal } from "./payments/zapQRModal";
-import { useNavigate } from "react-router-dom"; // or next/router if using Next.js
 
 export const FormDetails = ({
   isOpen,
@@ -38,21 +36,8 @@ export const FormDetails = ({
   const [savedOnNostr, setSavedOnNostr] = useState<null | "saving" | "saved">(
     null
   );
-  const [invoice, setInvoice] = useState<string | null>(null);
-  const [hash, setHash] = useState<string | null>(null);
-  const [slug, setSlug] = useState<string | null>(null);
-  const navigate = useNavigate(); // or useRouter()
+  const [showCustomForm, setShowCustomForm] = useState(false);
   const { pubkey: userPub, requestPubkey } = useProfileContext();
-
-  const handleInvoiceReady = (inv: string, hash: string, slug: string) => {
-    setInvoice(inv);
-    setHash(hash);
-    setSlug(slug);
-  };
-
-  const handleZapSuccess = () => {
-    navigate(`/i/${slug}`);
-  };
 
   useEffect(() => {
     saveToDevice(
@@ -94,7 +79,7 @@ export const FormDetails = ({
       onCancel={onClose}
       footer={null}
       closable={false}
-      width="auto"
+      width={600}
     >
       <FormDetailsStyle className="form-details">
         <Card
@@ -115,20 +100,39 @@ export const FormDetails = ({
               viewKey={viewKey}
             />
           )}
-          <CustomSlugForm
-            onInvoiceReady={handleInvoiceReady}
-            formId={formId}
-            formPubkey={pubKey}
-            relays={relays}
-            viewKey={viewKey}
-          />
-          <ZapQRCodeModal
-            open={!!invoice}
-            invoice={invoice!}
-            hash={hash!}
-            onSuccess={handleZapSuccess}
-            onClose={() => setInvoice(null)}
-          />
+          <Card style={{ marginTop: 5 }}>
+            <Typography.Title level={5}>
+              Custom URL for Your Form
+            </Typography.Title>
+            <Typography.Paragraph type="secondary">
+              Get a personalized form URL like{" "}
+              <Typography.Text code>/t/your-name</Typography.Text> for{" "}
+              <Typography.Text strong>2500 sats</Typography.Text>.
+              <br />
+              This one-time purchase is tied to your{" "}
+              <Typography.Text code>Nostr</Typography.Text> profile.
+            </Typography.Paragraph>
+
+            {!showCustomForm ? (
+              <Button
+                type="primary"
+                onClick={() =>
+                  userPub ? setShowCustomForm(true) : requestPubkey
+                }
+                disabled={!userPub}
+              >
+                {userPub ? "Claim Custom URL" : "Login to claim custom URL"}
+              </Button>
+            ) : (
+              <CustomSlugForm
+                formId={formId}
+                formPubkey={pubKey}
+                relays={relays}
+                viewKey={viewKey}
+              />
+            )}
+          </Card>
+
           <Divider />
           <SaveStatus
             savedLocally={savedLocally}

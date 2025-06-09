@@ -1,19 +1,30 @@
 import { useState } from "react";
-import { Button, Input, Typography, Alert, Space, Row, Col } from "antd";
+import {
+  Button,
+  Input,
+  Typography,
+  Alert,
+  Space,
+  Row,
+  Col,
+  Divider,
+} from "antd";
 import { CheckCircleOutlined, LoadingOutlined } from "@ant-design/icons";
 import axios from "../../../../../utils/axiosInstance";
 import { useNostrAuth } from "../../../../../hooks/useNostrAuth";
 import { appConfig } from "../../../../../config";
+import { useProfileContext } from "../../../../../hooks/useProfileContext";
+import { ZapQRCodeModal } from "./zapQRModal";
+import { useNavigate } from "react-router-dom";
+
 const { Text } = Typography;
 
 export const CustomSlugForm = ({
   formId,
-  onInvoiceReady,
   formPubkey,
   relays,
   viewKey,
 }: {
-  onInvoiceReady: (invoice: string, hash: string, slug: string) => void;
   formId: string;
   formPubkey: string;
   relays: string[];
@@ -23,7 +34,12 @@ export const CustomSlugForm = ({
   const [checking, setChecking] = useState(false);
   const [available, setAvailable] = useState<boolean | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [invoice, setInvoice] = useState<string | null>(null);
+  const [hash, setHash] = useState<string | null>(null);
+
+    const navigate = useNavigate();
   const { generateAuthHeader, error: authError } = useNostrAuth();
+  const { pubkey } = useProfileContext();
 
   const checkAvailability = async () => {
     if (!slug) return;
@@ -34,18 +50,20 @@ export const CustomSlugForm = ({
       const formPath = `/api/forms/${slug}`;
       const apiURl = `${appConfig.apiBaseUrl}${formPath}`;
       await axios.get(formPath, { withCredentials: false });
-      // If we reach here, form exists → slug is NOT available
-      setAvailable(false);
+      setAvailable(false); // exists = taken
     } catch (err: any) {
       if (err.response?.status === 404) {
-        // Form does not exist → slug is available
-        setAvailable(true);
+        setAvailable(true); // not found = available
       } else {
         setError(err.response?.data?.error || "Server error");
       }
     } finally {
       setChecking(false);
     }
+  };
+
+  const handleZapSuccess = () => {
+    navigate(`/i/${slug}`);
   };
 
   const handlePay = async () => {
@@ -71,24 +89,36 @@ export const CustomSlugForm = ({
       );
       console.log("APIR RESULT", res);
       const { invoice, paymentHash } = res.data;
-      console.log("QR data is", invoice, paymentHash, res.data); // assume backend returns hash
-      onInvoiceReady(invoice, paymentHash, slug); // pass hash instead of slug
+      setInvoice(invoice);
+      setHash(paymentHash);
+      setSlug(slug)
     } catch (err: any) {
       setError(err.response?.data?.error || `Payment error: ${err}`);
     }
   };
 
+  const isLoggedIn = !!pubkey;
+
   return (
     <div style={{ marginTop: 32, maxWidth: 400 }}>
+      <Divider />
       <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-        <Text strong style={{ fontSize: 16 }}>
-          Claim a Custom URL
-        </Text>
+        {!isLoggedIn && (
+          <Alert
+            message="You must be logged in with Nostr to claim a custom URL."
+            type="warning"
+            showIcon
+          />
+        )}
 
         <Input
           placeholder="your-custom-slug"
           value={slug}
-          onChange={(e) => setSlug(e.target.value.trim())}
+          onChange={(e) => {
+            setSlug(e.target.value.trim());
+            setAvailable(null); // reset availability
+          }}
+          onPressEnter={checkAvailability}
           addonBefore="/t/"
           suffix={
             checking ? (
@@ -97,16 +127,24 @@ export const CustomSlugForm = ({
               <CheckCircleOutlined style={{ color: "green" }} />
             ) : null
           }
+          disabled={!isLoggedIn}
         />
 
         <Row gutter={8}>
           <Col>
-            <Button onClick={checkAvailability} disabled={!slug}>
+            <Button
+              onClick={checkAvailability}
+              disabled={!slug || !isLoggedIn}
+            >
               Check Availability
             </Button>
           </Col>
           <Col>
-            <Button type="primary" onClick={handlePay} disabled={!available}>
+            <Button
+              type="primary"
+              onClick={handlePay}
+              disabled={!available || !isLoggedIn}
+            >
               Pay to Claim
             </Button>
           </Col>
@@ -114,6 +152,13 @@ export const CustomSlugForm = ({
 
         {error && <Alert type="error" message={error} />}
       </Space>
+      <ZapQRCodeModal
+        open={!!invoice}
+        invoice={invoice!}
+        hash={hash!}
+        onSuccess={handleZapSuccess}
+        onClose={() => setInvoice(null)}
+      />
     </div>
   );
 };
