@@ -1,11 +1,12 @@
 // ZapQRCodeModal.tsx
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Modal, Typography, Button, Tooltip, message, Spin, Alert } from "antd";
 import * as QRCode from "qrcode.react";
 import { CopyOutlined } from "@ant-design/icons";
 import { appConfig } from "../../../../../config";
 
 const { Text } = Typography;
+const MAX_TIME = 300;
 
 export const ZapQRCodeModal = ({
   open,
@@ -24,33 +25,35 @@ export const ZapQRCodeModal = ({
     "pending" | "paid" | "error"
   >("pending");
   const [copied, setCopied] = useState(false);
+  const wsRef = useRef<WebSocket>(
+    new WebSocket(`${appConfig.wsBaseUrl}/ws?hash=${hash}`)
+  );
 
+  const [timeLeft, setTimeLeft] = useState(MAX_TIME);
   useEffect(() => {
     if (!hash) return;
 
     setPaymentStatus("pending");
 
-    const ws = new WebSocket(`${appConfig.wsBaseUrl}/ws?hash=${hash}`);
-
-    ws.onmessage = (event) => {
+    wsRef.current.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.status === "paid") {
           setPaymentStatus("paid");
           onSuccess();
-          ws.close();
+          wsRef.current.close();
         }
       } catch {
         // ignore malformed messages
       }
     };
 
-    ws.onerror = () => {
+    wsRef.current.onerror = () => {
       setPaymentStatus("error");
     };
 
     return () => {
-      ws.close();
+      wsRef.current.close();
     };
   }, [hash, onSuccess]);
 
@@ -60,6 +63,34 @@ export const ZapQRCodeModal = ({
       message.success("Invoice copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
     });
+  };
+
+  useEffect(() => {
+    if (!open) return;
+
+    setTimeLeft(MAX_TIME);
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          wsRef.current.close();
+          onClose(); // ⏱ Auto-close the modal
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [open]);
+
+  // Format time MM:SS
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+      .toString()
+      .padStart(2, "0");
+    const s = (seconds % 60).toString().padStart(2, "0");
+    return `${m}:${s}`;
   };
 
   return (
@@ -112,9 +143,19 @@ export const ZapQRCodeModal = ({
         </div>
 
         {paymentStatus === "pending" && (
-          <div style={{ marginTop: 24, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+          <div
+            style={{
+              marginTop: 24,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
             <Spin />
             <Text>Waiting for payment...</Text>
+            <Text type="secondary">Expires in: {formatTime(timeLeft)}</Text>
           </div>
         )}
 
