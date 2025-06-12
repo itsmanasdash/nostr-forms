@@ -25,37 +25,58 @@ export const ZapQRCodeModal = ({
     "pending" | "paid" | "error"
   >("pending");
   const [copied, setCopied] = useState(false);
-  const wsRef = useRef<WebSocket>(
-    new WebSocket(`${appConfig.wsBaseUrl}/ws?hash=${hash}`)
-  );
-
   const [timeLeft, setTimeLeft] = useState(MAX_TIME);
+
+  const wsRef = useRef<WebSocket | null>(null);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
-    if (!hash) return;
+    if (!open || !hash) return;
 
     setPaymentStatus("pending");
+    setTimeLeft(MAX_TIME);
 
-    wsRef.current.onmessage = (event) => {
+    const ws = new WebSocket(`${appConfig.wsBaseUrl}/ws?hash=${hash}`);
+    wsRef.current = ws;
+
+    ws.onmessage = (event) => {
       try {
         const data = JSON.parse(event.data);
         if (data.status === "paid") {
           setPaymentStatus("paid");
           onSuccess();
-          wsRef.current.close();
+          ws.close();
         }
       } catch {
-        // ignore malformed messages
+        // Ignore malformed messages
       }
     };
 
-    wsRef.current.onerror = () => {
+    ws.onerror = () => {
       setPaymentStatus("error");
     };
 
+    timerRef.current = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current!);
+          ws.close();
+          onClose();
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
     return () => {
-      wsRef.current.close();
+      ws.close();
+      wsRef.current = null;
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
     };
-  }, [hash, onSuccess]);
+  }, [open, hash, onSuccess, onClose]);
 
   const copyInvoice = () => {
     navigator.clipboard.writeText(invoice).then(() => {
@@ -65,26 +86,6 @@ export const ZapQRCodeModal = ({
     });
   };
 
-  useEffect(() => {
-    if (!open) return;
-
-    setTimeLeft(MAX_TIME);
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          wsRef.current.close();
-          onClose(); // ⏱ Auto-close the modal
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [open]);
-
-  // Format time MM:SS
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
       .toString()
