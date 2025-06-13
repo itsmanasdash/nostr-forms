@@ -16,6 +16,7 @@ import { appConfig } from "../../../../../config";
 import { useProfileContext } from "../../../../../hooks/useProfileContext";
 import { ZapQRCodeModal } from "./zapQRModal";
 import { useNavigate } from "react-router-dom";
+import UniversalMarkdownModal from "../../../../../components/UniversalMarkdownModal";
 
 const { Text } = Typography;
 
@@ -36,8 +37,9 @@ export const CustomSlugForm = ({
   const [error, setError] = useState<string | null>(null);
   const [invoice, setInvoice] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
+  const [showTermsModal, setShowTermsModal] = useState(false);
 
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const { generateAuthHeader, error: authError } = useNostrAuth();
   const { pubkey } = useProfileContext();
 
@@ -91,7 +93,7 @@ export const CustomSlugForm = ({
       const { invoice, paymentHash } = res.data;
       setInvoice(invoice);
       setHash(paymentHash);
-      setSlug(slug)
+      setSlug(slug);
     } catch (err: any) {
       setError(err.response?.data?.error || `Payment error: ${err}`);
     }
@@ -129,13 +131,9 @@ export const CustomSlugForm = ({
           }
           disabled={!isLoggedIn}
         />
-
         <Row gutter={8}>
           <Col>
-            <Button
-              onClick={checkAvailability}
-              disabled={!slug || !isLoggedIn}
-            >
+            <Button onClick={checkAvailability} disabled={!slug || !isLoggedIn}>
               Check Availability
             </Button>
           </Col>
@@ -150,6 +148,18 @@ export const CustomSlugForm = ({
           </Col>
         </Row>
 
+        {/* Terms and Privacy line aligned cleanly below the buttons */}
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          By continuing, you agree to our{" "}
+          <a
+            onClick={() => setShowTermsModal(true)}
+            style={{ textDecoration: "underline" }}
+          >
+            Terms of Service and Privacy Policy
+          </a>
+          .
+        </Text>
+
         {error && <Alert type="error" message={error} />}
       </Space>
       <ZapQRCodeModal
@@ -158,6 +168,12 @@ export const CustomSlugForm = ({
         hash={hash!}
         onSuccess={handleZapSuccess}
         onClose={() => setInvoice(null)}
+      />
+      <UniversalMarkdownModal
+        visible={showTermsModal}
+        onClose={() => setShowTermsModal(false)}
+        title="Terms & Privacy"
+        filePath="/docs/TermsOfUse.md"
       />
     </div>
   );
