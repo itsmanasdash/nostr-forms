@@ -10,10 +10,11 @@ import EmptyScreen from "../../components/EmptyScreen";
 import { useApplicationContext } from "../../hooks/useApplicationContext";
 import { getItem, LOCAL_STORAGE_KEYS } from "../../utils/localStorage";
 import { ILocalForm } from "../CreateFormNew/providers/FormBuilder/typeDefs";
-import { Dropdown, Menu, Typography, Button } from "antd";
+import { Dropdown, Menu, Button } from "antd";
 import { DownOutlined } from "@ant-design/icons";
 import { MyForms } from "./FormCards/MyForms";
 import { Drafts } from "./FormCards/Drafts";
+import { Purchases } from "./FormCards/Purchases";
 import { LocalForms } from "./FormCards/LocalForms";
 import { useNavigate } from "react-router-dom";
 import { availableTemplates, FormTemplate } from "../../templates";
@@ -27,9 +28,10 @@ const MENU_OPTIONS = {
   shared: "Shared with me",
   myForms: "My forms",
   drafts: "Drafts",
+  purchases: "Purchases", // Add this line
 };
 
-type FilterType = "local" | "shared" | "myForms" | "drafts";
+type FilterType = "local" | "shared" | "myForms" | "drafts" | "purchases";
 
 type RouteMapType = {
   [key: string]: FilterType;
@@ -40,6 +42,7 @@ const ROUTE_TO_FILTER_MAP: RouteMapType = {
   [ROUTES.DASHBOARD_SHARED]: "shared",
   [ROUTES.DASHBOARD_MY_FORMS]: "myForms",
   [ROUTES.DASHBOARD_DRAFTS]: "drafts",
+  [ROUTES.DASHBOARD_PURCHASES]: "purchases", // Add this line
   [ROUTES.DASHBOARD]: "local",
 };
 
@@ -143,15 +146,17 @@ export const Dashboard = () => {
         return <EmptyScreen message="No forms shared with you." />;
       }
       return Array.from(nostrForms.values()).map((formEvent: Event) => {
-        let d_tag = formEvent.tags.find((t) => t[0] === "d")?.[1];
+        const d_tag = formEvent.tags.find((t) => t[0] === "d")?.[1];
         if (!d_tag) return null;
-        let key = `${formEvent.kind}:${formEvent.pubkey}:${d_tag}`;
+        const key = `${formEvent.kind}:${formEvent.pubkey}:${d_tag}`;
         return <FormEventCard key={key} event={formEvent} />;
       });
     } else if (filter === "myForms") {
       return <MyForms />;
     } else if (filter === "drafts") {
       return <Drafts />;
+    } else if (filter === "purchases") {
+      return <Purchases />;
     }
     return null;
   };
@@ -162,6 +167,7 @@ export const Dashboard = () => {
       shared: ROUTES.DASHBOARD_SHARED,
       myForms: ROUTES.DASHBOARD_MY_FORMS,
       drafts: ROUTES.DASHBOARD_DRAFTS,
+      purchases: ROUTES.DASHBOARD_PURCHASES, // Add this to the route map
     };
 
     navigate(routeMap[selectedFilter]);
@@ -188,6 +194,12 @@ export const Dashboard = () => {
       </Menu.Item>
       <Menu.Item key="drafts" onClick={() => handleFilterChange("drafts")}>
         {MENU_OPTIONS.drafts}
+      </Menu.Item>
+      <Menu.Item
+        key="purchases"
+        onClick={() => handleFilterChange("purchases")}
+      >
+        {MENU_OPTIONS.purchases}
       </Menu.Item>
     </Menu>
   );

@@ -65,15 +65,13 @@ export const CustomSlugForm = ({
   };
 
   const handleZapSuccess = () => {
-    navigate(`/i/${slug}`);
+    navigate(`/t/${slug}`);
   };
 
   const handlePay = async () => {
     const payPath = `/api/generateInvoice`;
     const apiUrl = `${appConfig.apiBaseUrl}${payPath}`;
-    console.log("TRYING API", apiUrl);
     try {
-      console.log("INSIDE TRY BLOCK");
       const authHeader = await generateAuthHeader(apiUrl, "POST", {
         slug: slug,
         formId: formId,
@@ -81,7 +79,6 @@ export const CustomSlugForm = ({
         relays,
         viewKey,
       });
-      console.log("AUTH HEADER IS", authHeader);
       const res = await axios.post(
         apiUrl,
         { slug, formId, formPubkey, relays, viewKey },
