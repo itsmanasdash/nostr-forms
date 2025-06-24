@@ -139,7 +139,7 @@ export const editPath = (
   scretKey: string,
   formId: string,
   relay?: string,
-  viewKey?: string
+  viewKey?: string | null
 ) => {
   const baseUrl = `/edit/${scretKey}/${formId}`;
   const params = new URLSearchParams();
@@ -152,7 +152,7 @@ export const responsePath = (
   secretKey: string,
   formId: string,
   relays?: string[],
-  viewKey?: string
+  viewKey?: string | null
 ) => {
   const baseUrl = `/s/${secretKey}/${formId}`;
   const params = new URLSearchParams();
