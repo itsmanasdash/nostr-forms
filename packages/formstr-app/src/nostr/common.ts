@@ -15,7 +15,6 @@ import { bytesToHex } from "@noble/hashes/utils";
 import { normalizeURL } from "nostr-tools/utils";
 import { Field, Response, Tag } from "./types";
 import { IFormSettings } from "../containers/CreateFormNew/components/FormSettings/types";
-import { Alert } from "antd";
 
 declare global {
   // TODO: make this better
@@ -23,6 +22,7 @@ declare global {
     __FORMSTR__FORM_IDENTIFIER__: {
       naddr?: string;
       viewKey?: string;
+      formContent?: string;
     };
     nostr: {
       getPublicKey: () => Promise<string>;
