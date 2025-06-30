@@ -15,21 +15,22 @@ interface FormRendererContainerProps {
   formEvent: Event;
   onSubmitClick: (responses: Response[], formTemplate: Tag[]) => void;
   viewKey: string | null;
-  hideTitleImage?: boolean;
-  hideDescription?: boolean;
+  hideTitleImage?:  boolean;
+  hideDescription?: boolean
 }
 
 export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
   formEvent,
   onSubmitClick,
   viewKey,
+  hideDescription,
+  hideTitleImage
 }) => {
   const { pubkey: userPubKey, requestPubkey } = useProfileContext();
   const [form] = Form.useForm();
   const { Text } = Typography;
   const [formTemplate, setFormTemplate] = useState<Tag[]>();
   const [settings, setSettings] = useState<IFormSettings>();
-
   useEffect(() => {
     const initialize = async () => {
       if (formEvent.content === "") {
@@ -71,7 +72,8 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
     const responses: Response[] = Object.keys(formResponses).map((fieldId) => {
       let answer = null;
       let message = null;
-      if (formResponses[fieldId]) [answer, message] = formResponses[fieldId];
+      if (formResponses[fieldId])
+        [answer, message] = formResponses[fieldId];
       return ["response", fieldId, answer, JSON.stringify({ message })];
     });
     onSubmitClick(responses, formTemplate!);
@@ -107,20 +109,22 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
       />
     );
   }
+
   if (!formTemplate)
     return (
       <div>
         <Typography.Text> Form is encrypted </Typography.Text>
       </div>
     );
+
   return (
     <FormRenderer
       formTemplate={formTemplate}
       form={form}
       onInput={handleInput}
       footer={footer}
-      hideTitleImage
-      hideDescription
+      hideTitleImage={hideTitleImage}         
+      hideDescription={hideDescription}       
     />
   );
 };
