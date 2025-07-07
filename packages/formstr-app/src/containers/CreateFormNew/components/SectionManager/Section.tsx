@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Typography, Divider, Card, Button, Space, Input } from 'antd';
-import { UpOutlined, DownOutlined } from '@ant-design/icons';
-import styled from 'styled-components';
-import { SectionData } from '../../providers/FormBuilder/typeDefs';
-import useFormBuilderContext from '../../hooks/useFormBuilderContext';
-import DeleteButton from '../QuestionCard/DeleteButton';
+import React, { useState } from "react";
+import { Typography, Divider, Card, Button, Space, Input } from "antd";
+import { UpOutlined, DownOutlined } from "@ant-design/icons";
+import styled from "styled-components";
+import { SectionData } from "../../providers/FormBuilder/typeDefs";
+import useFormBuilderContext from "../../hooks/useFormBuilderContext";
+import SectionDeleteButton from "./SectionDeleteButton";
 
 const { Title, Text } = Typography;
 const { TextArea } = Input;
@@ -40,18 +40,18 @@ const SectionWrapper = styled.div`
   .section-content {
     margin-top: 16px;
   }
-  
+
   .section-actions {
     display: flex;
     gap: 8px;
     margin-left: 16px;
   }
-  
+
   .collapsed-indicator {
     margin-left: 8px;
     color: rgba(0, 0, 0, 0.45);
   }
-  
+
   .drop-indicator {
     position: absolute;
     top: 0;
@@ -74,14 +74,16 @@ interface SectionProps {
   children: React.ReactNode;
 }
 
-const Section: React.FC<SectionProps> = ({
-  section,
-  children,
-}) => {
-  const { updateSection, removeSection, moveQuestionToSection } = useFormBuilderContext();
+const Section: React.FC<SectionProps> = ({ section, children }) => {
+  const {
+    updateSection,
+    removeSection,
+    moveQuestionToSection,
+    deleteQuestion,
+  } = useFormBuilderContext();
   const [collapsed, setCollapsed] = useState(false);
   const [isDropTarget, setIsDropTarget] = useState(false);
-  
+
   const handleDelete = () => {
     removeSection(section.id);
   };
@@ -90,37 +92,46 @@ const Section: React.FC<SectionProps> = ({
     updateSection(section.id, { title: e.target.value });
   };
 
-  const handleDescriptionChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+  const handleDescriptionChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
     updateSection(section.id, { description: e.target.value });
   };
-  
+
   // Drag & drop handlers
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDropTarget(true);
   };
-  
+
   const handleDragLeave = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDropTarget(false);
   };
-  
+
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDropTarget(false);
-    
+
     const questionId = e.dataTransfer.getData("questionId");
     if (questionId) {
       moveQuestionToSection(questionId, section.id);
     }
   };
-  
+
+  const handleDeleteWithQuestions = () => {
+    section.questionIds.forEach((questionId) => {
+      deleteQuestion(questionId);
+    });
+    removeSection(section.id);
+  };
+
   return (
     <div
-      style={{ position: 'relative' }}
+      style={{ position: "relative" }}
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
@@ -130,13 +141,13 @@ const Section: React.FC<SectionProps> = ({
           <Text strong>Drop question here</Text>
         </div>
       )}
-      
-      <Card 
-        style={{ 
+
+      <Card
+        style={{
           marginBottom: 24,
-          position: 'relative',
-          transition: 'all 0.2s',
-          border: isDropTarget ? '1px solid #1890ff' : '1px solid #f0f0f0'
+          position: "relative",
+          transition: "all 0.2s",
+          border: isDropTarget ? "1px solid #1890ff" : "1px solid #f0f0f0",
         }}
         extra={
           <Space>
@@ -145,9 +156,11 @@ const Section: React.FC<SectionProps> = ({
               icon={collapsed ? <DownOutlined /> : <UpOutlined />}
               onClick={() => setCollapsed(!collapsed)}
             />
-            <DeleteButton
+            <SectionDeleteButton
               onDelete={handleDelete}
-              itemType="section"
+              onDeleteWithQuestions={handleDeleteWithQuestions}
+              questionCount={section.questionIds.length}
+              sectionTitle={section.title}
               className="action-icon"
             />
           </Space>
@@ -155,20 +168,20 @@ const Section: React.FC<SectionProps> = ({
       >
         <SectionWrapper>
           <div className="section-header">
-            <div style={{ width: '100%' }}>
+            <div style={{ width: "100%" }}>
               <Input
                 className="section-title-input"
-                value={section.title || ''}
+                value={section.title || ""}
                 onChange={handleTitleChange}
                 placeholder="Section title"
                 onClick={(e) => e.stopPropagation()}
                 bordered={false}
               />
-              
+
               {!collapsed && (
                 <TextArea
                   className="section-description"
-                  value={section.description || ''}
+                  value={section.description || ""}
                   onChange={handleDescriptionChange}
                   placeholder="Click to edit section description"
                   autoSize
@@ -178,7 +191,7 @@ const Section: React.FC<SectionProps> = ({
               )}
             </div>
           </div>
-          
+
           {!collapsed && (
             <>
               <Divider />
