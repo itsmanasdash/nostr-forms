@@ -12,12 +12,14 @@ export const ZapQRCodeModal = ({
   open,
   invoice,
   hash,
+  amount,
   onSuccess,
   onClose,
 }: {
   open: boolean;
   invoice: string;
   hash: string;
+  amount: number,
   onSuccess: () => void;
   onClose: () => void;
 }) => {
@@ -132,7 +134,7 @@ export const ZapQRCodeModal = ({
           >
             {invoice}
           </pre>
-
+            <div> Amount: {amount} sats</div>
           <Tooltip title={copied ? "Copied!" : "Copy invoice"}>
             <Button
               icon={<CopyOutlined />}

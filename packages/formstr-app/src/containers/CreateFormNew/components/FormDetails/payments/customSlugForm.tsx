@@ -38,7 +38,8 @@ export const CustomSlugForm = ({
   const [invoice, setInvoice] = useState<string | null>(null);
   const [hash, setHash] = useState<string | null>(null);
   const [showTermsModal, setShowTermsModal] = useState(false);
-
+  const [amount, setAmount] = useState<number>(0);
+  
   const navigate = useNavigate();
   const { generateAuthHeader, error: authError } = useNostrAuth();
   const { pubkey } = useProfileContext();
@@ -88,6 +89,8 @@ export const CustomSlugForm = ({
       );
       console.log("APIR RESULT", res);
       const { invoice, paymentHash } = res.data;
+      const { amount } = res.data;
+      setAmount(amount);
       setInvoice(invoice);
       setHash(paymentHash);
       setSlug(slug);
@@ -163,6 +166,7 @@ export const CustomSlugForm = ({
         open={!!invoice}
         invoice={invoice!}
         hash={hash!}
+        amount={amount!}
         onSuccess={handleZapSuccess}
         onClose={() => setInvoice(null)}
       />
