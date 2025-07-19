@@ -62,7 +62,7 @@ export const CustomSlugForm = ({
       if (err.response?.status === 404) {
         setAvailable(true); // not found = available
       } else {
-        setError(err.response?.data?.error.replace('hyphens, and', 'hyphens,<br>and') || "Server error");
+        setError(err.response?.data?.error || "Server error");
       }
     } finally {
       setChecking(false);
