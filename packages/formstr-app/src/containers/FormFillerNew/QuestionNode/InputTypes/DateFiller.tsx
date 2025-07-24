@@ -3,12 +3,14 @@ import dayjs from "dayjs";
 
 interface DateFillerProps {
   onChange: (value: string) => void;
-  defaultValue?: string;
+  value?: string;
+  disabled?: boolean;
 }
 
 export const DateFiller: React.FC<DateFillerProps> = ({
   onChange,
-  defaultValue,
+  value,
+  disabled = false,
 }) => {
   const handleChange: DatePickerProps["onChange"] = (date, dateString) => {
     onChange(dateString);
@@ -17,7 +19,8 @@ export const DateFiller: React.FC<DateFillerProps> = ({
     <>
       <DatePicker
         onChange={handleChange}
-        defaultValue={defaultValue ? dayjs(defaultValue) : undefined}
+        value={value ? dayjs(value) : undefined}
+        disabled={disabled}
       />
     </>
   );

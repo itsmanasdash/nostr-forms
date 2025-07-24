@@ -18,14 +18,16 @@ interface ChoiceFillerProps {
   answerType: AnswerTypes.checkboxes | AnswerTypes.radioButton;
   options: Option[];
   onChange: (value: string, message: string) => void;
-  defaultValue?: string;
+  value?: string;
+  disabled?: boolean;
 }
 
 export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
   answerType,
   options,
   onChange,
-  defaultValue,
+  value,
+  disabled = false,
 }) => {
   const [otherMessage, setOtherMessage] = useState("");
   
@@ -47,18 +49,18 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
 
   let ElementConfig: {
     Element: typeof Radio,
-    defaultValue?: RadioGroupProps['defaultValue']
+    value?: RadioGroupProps['value']
   } | {
     Element: typeof Checkbox,
-    defaultValue?: CheckboxGroupProps['defaultValue']
+    value?: CheckboxGroupProps['value']
   } = {
     Element: Radio,
-    defaultValue: defaultValue
+    value: value
   }
  if (answerType === AnswerTypes.checkboxes) {
    ElementConfig = {
      Element: Checkbox,
-     defaultValue: defaultValue?.split(";")
+     value: value?.split(";")
    }
   }
   return (
@@ -66,16 +68,17 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
     <ChoiceFillerStyle>
       <ElementConfig.Element.Group
         onChange={handleChoiceChange}
-        defaultValue={ElementConfig.defaultValue}
+        value={ElementConfig.value}
+        disabled={disabled}
       >
         <Space direction="vertical">
           {options.map((choice) => {
             let [choiceId, label, configString] = choice;
             let config = JSON.parse(configString || "{}")
             return (
-              <ElementConfig.Element key={choiceId} value={choiceId}>
+              <ElementConfig.Element key={choiceId} value={choiceId} disabled={disabled}>
                 <Markdown>{label}</Markdown>
-                {config.isOther && <Input placeholder="Add an optional message..." onInput={handleMessage}/>}
+                {config.isOther && <Input placeholder="Add an optional message..." onInput={handleMessage} disabled={disabled}/>} 
               </ElementConfig.Element>
             );
           })}
