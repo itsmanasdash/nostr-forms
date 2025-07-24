@@ -6,28 +6,24 @@ import { useEffect, useState } from "react";
 dayjs.extend(customParseFormat);
 
 interface TimeFillerProps {
-  value?: string;
+  defaultValue?: string;
   onChange: (answer: string, message?: string) => void;
   disabled?: boolean;
 }
 
 export const TimeFiller: React.FC<TimeFillerProps> = ({
-  value,
+  defaultValue,
   onChange,
   disabled = false,
 }) => {
-  const [internalValue, setInternalValue] = useState<dayjs.Dayjs | null>(
-    value ? dayjs(value, "h:mm A") : null
+  const [value, setValue] = useState<dayjs.Dayjs | null>(
+    defaultValue ? dayjs(defaultValue, "h:mm A") : null
   );
 
   useEffect(() => {
-    if (internalValue) {
-      onChange(internalValue.format("h:mm A"), "");
+    if (value) {
+      onChange(value.format("h:mm A"), "");
     }
-  }, [internalValue]);
-
-  useEffect(() => {
-    setInternalValue(value ? dayjs(value, "h:mm A") : null);
   }, [value]);
 
   return (
@@ -35,8 +31,8 @@ export const TimeFiller: React.FC<TimeFillerProps> = ({
       <TimePicker
       use12Hours
       format="h:mm A"
-      value={internalValue}
-      onSelect={(val) => setInternalValue(val)}
+      value={value}
+      onSelect={(val) => setValue(val)}
       allowClear={false}
       disabled={disabled}
     />

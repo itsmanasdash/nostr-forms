@@ -18,7 +18,7 @@ interface ChoiceFillerProps {
   answerType: AnswerTypes.checkboxes | AnswerTypes.radioButton;
   options: Option[];
   onChange: (value: string, message: string) => void;
-  value?: string;
+  defaultValue?: string;
   disabled?: boolean;
 }
 
@@ -26,7 +26,7 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
   answerType,
   options,
   onChange,
-  value,
+  defaultValue,
   disabled = false,
 }) => {
   const [otherMessage, setOtherMessage] = useState("");
@@ -49,18 +49,18 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
 
   let ElementConfig: {
     Element: typeof Radio,
-    value?: RadioGroupProps['value']
+    defaultValue?: RadioGroupProps['defaultValue']
   } | {
     Element: typeof Checkbox,
-    value?: CheckboxGroupProps['value']
+    defaultValue?: CheckboxGroupProps['defaultValue']
   } = {
     Element: Radio,
-    value: value
+    defaultValue: defaultValue
   }
  if (answerType === AnswerTypes.checkboxes) {
    ElementConfig = {
      Element: Checkbox,
-     value: value?.split(";")
+     defaultValue: defaultValue?.split(";")
    }
   }
   return (
@@ -68,7 +68,7 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
     <ChoiceFillerStyle>
       <ElementConfig.Element.Group
         onChange={handleChoiceChange}
-        value={ElementConfig.value}
+        defaultValue={ElementConfig.defaultValue}
         disabled={disabled}
       >
         <Space direction="vertical">

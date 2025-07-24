@@ -4,14 +4,14 @@ import { Select } from "antd";
 interface DropdownFillerProps {
   options: Option[];
   onChange: (text: string) => void;
-  value?: string;
+  defaultValue?: string;
   disabled?: boolean;
 }
 
 export const DropdownFiller: React.FC<DropdownFillerProps> = ({
   options,
   onChange,
-  value,
+  defaultValue,
   disabled = false,
 }) => {
   return (
@@ -22,7 +22,7 @@ export const DropdownFiller: React.FC<DropdownFillerProps> = ({
           let [choiceId, label] = choice;
           return { value: choiceId, label: label };
         })}
-        value={value}
+        defaultValue={defaultValue}
         placeholder="Select an option"
         disabled={disabled}
       />

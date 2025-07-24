@@ -58,10 +58,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             </div>
           )}
 
-          <Form form={form} onFinish={() => { }} className="with-description" initialValues={initialValues}>
-            <FormFields fields={fields} handleInput={onInput} disabled={disabled} />
+          <Form form={form} onFinish={() => { }} className="with-description">
+            <FormFields fields={fields} handleInput={onInput} disabled={disabled} values={initialValues}/>
             {footer}
-          </Form>
+          </Form>x
         </div>
 
         <div className="branding-container">

@@ -13,7 +13,6 @@ interface QuestionProps {
   required: boolean;
   disabled?: boolean;
   value?: any;
-  onChange?: any;
 }
 
 export const QuestionNode: React.FC<QuestionProps> = ({
@@ -25,7 +24,6 @@ export const QuestionNode: React.FC<QuestionProps> = ({
   required,
   disabled = false,
   value,
-  onChange,
 }) => {
   const answerHandler = (questionId: string) => {
     return (answer: string, message?: string) => {

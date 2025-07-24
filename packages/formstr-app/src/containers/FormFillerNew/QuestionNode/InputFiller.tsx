@@ -42,7 +42,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       [AnswerTypes.label]: <></>,
       [AnswerTypes.shortText]: (
         <Input
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           onChange={handleInputChange}
           placeholder="Please enter your response"
           disabled={disabled}
@@ -50,7 +50,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.paragraph]: (
         <TextArea
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           onChange={handleInputChange}
           placeholder="Please enter your response"
           disabled={disabled}
@@ -58,7 +58,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.number]: (
         <InputNumber
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           onChange={handleValueChange}
           style={{ width: "100%" }}
           placeholder="Please enter your response"
@@ -69,14 +69,14 @@ export const InputFiller: React.FC<InputFillerProps> = ({
         <ChoiceFiller
           answerType={answerType as AnswerTypes.radioButton}
           options={options}
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled}
         />
       ),
       [AnswerTypes.checkboxes]: (
         <ChoiceFiller
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           answerType={answerType as AnswerTypes.checkboxes}
           options={options}
           onChange={handleValueChange}
@@ -85,7 +85,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.dropdown]: (
         <DropdownFiller
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           options={options}
           onChange={handleValueChange}
           disabled={disabled}
@@ -93,14 +93,14 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.date]: (
         <DateFiller
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled}
         />
       ),
       [AnswerTypes.time]: (
         <TimeFiller
-          value={defaultValue as string}
+          defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled}
         />
