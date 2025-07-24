@@ -68,7 +68,7 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
     <ChoiceFillerStyle>
       <ElementConfig.Element.Group
         onChange={handleChoiceChange}
-        defaultValue={ElementConfig.defaultValue}
+        value={ElementConfig.defaultValue}
         disabled={disabled}
       >
         <Space direction="vertical">

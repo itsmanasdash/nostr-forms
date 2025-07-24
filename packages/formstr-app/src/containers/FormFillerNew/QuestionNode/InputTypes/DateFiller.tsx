@@ -19,7 +19,7 @@ export const DateFiller: React.FC<DateFillerProps> = ({
     <>
       <DatePicker
         onChange={handleChange}
-        defaultValue={defaultValue ? dayjs(defaultValue) : undefined}
+        value={defaultValue ? dayjs(defaultValue) : undefined}
         disabled={disabled}
       />
     </>

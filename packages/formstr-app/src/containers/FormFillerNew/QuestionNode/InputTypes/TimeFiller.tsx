@@ -21,10 +21,14 @@ export const TimeFiller: React.FC<TimeFillerProps> = ({
   );
 
   useEffect(() => {
+    setValue(defaultValue ? dayjs(defaultValue, "h:mm A") : null);
+  }, [defaultValue]);
+
+  useEffect(() => {
     if (value) {
       onChange(value.format("h:mm A"), "");
     }
-  }, [value]);
+  }, [value, onChange]);
 
   return (
     <>

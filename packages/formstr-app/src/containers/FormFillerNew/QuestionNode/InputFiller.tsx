@@ -42,7 +42,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       [AnswerTypes.label]: <></>,
       [AnswerTypes.shortText]: (
         <Input
-          defaultValue={defaultValue as string}
+          value={defaultValue as string}
           onChange={handleInputChange}
           placeholder="Please enter your response"
           disabled={disabled}
@@ -50,7 +50,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.paragraph]: (
         <TextArea
-          defaultValue={defaultValue as string}
+          value={defaultValue as string}
           onChange={handleInputChange}
           placeholder="Please enter your response"
           disabled={disabled}
@@ -58,7 +58,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.number]: (
         <InputNumber
-          defaultValue={defaultValue as string}
+          value={defaultValue as string}
           onChange={handleValueChange}
           style={{ width: "100%" }}
           placeholder="Please enter your response"
