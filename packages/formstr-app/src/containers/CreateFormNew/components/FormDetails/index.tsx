@@ -1,11 +1,12 @@
 // FormDetails.tsx
-import { Modal, Card, Divider, Typography, Button } from "antd";
+import { Modal, Card, Divider, Typography, Button, Alert } from "antd";
 import { useEffect, useState } from "react";
 import FormDetailsStyle from "./FormDetails.style";
 import { useProfileContext } from "../../../../hooks/useProfileContext";
 import {
   constructFormUrl,
   constructNewResponseUrl,
+  editPath,
 } from "../../../../utils/formUtils";
 import { ShareTab } from "./ShareTab";
 import { EmbedTab } from "./EmbedTab";
@@ -14,6 +15,7 @@ import { saveToDevice, saveToMyForms } from "./utils/saveHelpers";
 import { CustomSlugForm } from "./payments/customSlugForm";
 import axios from "axios";
 import { appConfig } from "../../../../config";
+import { useNavigate } from "react-router-dom";
 
 export const FormDetails = ({
   isOpen,
@@ -41,6 +43,7 @@ export const FormDetails = ({
   const [amount , setAmount] = useState(0);
   const [showCustomForm, setShowCustomForm] = useState(false);
   const { pubkey: userPub, requestPubkey } = useProfileContext();
+  const navigate = useNavigate();
 
   useEffect(() => {
     saveToDevice(
@@ -130,25 +133,14 @@ export const FormDetails = ({
               <Typography.Text code>Nostr</Typography.Text> profile.
             </Typography.Paragraph>
 
-            {!showCustomForm ? (
-              <Button
-                type="primary"
-                onClick={() =>
-                  userPub ? setShowCustomForm(true) : requestPubkey
-                }
-                disabled={!userPub}
-              >
-                {userPub ? "Claim Custom URL" : "Login to claim custom URL"}
-              </Button>
-            ) : (
-              <CustomSlugForm
-                formId={formId}
-                formPubkey={pubKey}
-                relays={relays}
-                viewKey={viewKey}
-              />
-            )}
-          </Card>
+          <CustomSlugForm
+            formId={formId}
+            formPubkey={pubKey}
+            relays={relays}
+            viewKey={viewKey}
+            showAccessWarning={/viewKey/.test(formUrl)}
+            onEditClick={() => navigate(editPath(secretKey, formId, relays[0], viewKey))}
+          />
 
           <Divider />
           <SaveStatus
