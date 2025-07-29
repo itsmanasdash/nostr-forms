@@ -153,7 +153,7 @@ export const Response = () => {
     setIsModalOpen(true);
   };
 
-  const getData = () => {
+  const getData = (useLabels: boolean = false) => {
     let answers: Array<{
       [key: string]: string;
     }> = [];
@@ -185,8 +185,9 @@ export const Response = () => {
       };
       inputs.forEach((input) => {
         if (!Array.isArray(input) || input.length < 2) return;
-        const { responseLabel, fieldId } = getResponseLabels(input, formSpec);
-        answerObject[fieldId] = responseLabel;
+        const { questionLabel, responseLabel, fieldId } = getResponseLabels(input, formSpec);
+        const displayKey = useLabels ? questionLabel : fieldId;
+        answerObject[displayKey] = responseLabel;
       });
       answers.push(answerObject);
     });
