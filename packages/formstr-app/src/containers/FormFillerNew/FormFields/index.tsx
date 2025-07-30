@@ -6,11 +6,13 @@ import { QuestionNode } from "../QuestionNode/QuestionNode";
 interface FormFieldsProps {
   fields: Array<Field>;
   handleInput: (questionId: string, answer: string, message?: string) => void;
+  testId? : string;
 }
 
 export const FormFields: React.FC<FormFieldsProps> = ({
   fields,
   handleInput,
+  testId = "form-fields",
 }) => {
   return fields.map((field) => {
     let [_, fieldId, type, label, optionsString, config] = field;
@@ -32,6 +34,7 @@ export const FormFields: React.FC<FormFieldsProps> = ({
           fieldId={fieldId}
           options={options}
           inputHandler={handleInput}
+          testId={testId}
         />
       </Form.Item>
     );
