@@ -69,16 +69,16 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
       <ElementConfig.Element.Group
         onChange={handleChoiceChange}
         defaultValue={ElementConfig.defaultValue}
-        data-testid={testId}
+        data-testid={`${testId}:group`}
       >
         <Space direction="vertical">
           {options.map((choice) => {
             let [choiceId, label, configString] = choice;
             let config = JSON.parse(configString || "{}")
             return (
-              <ElementConfig.Element key={choiceId} value={choiceId}>
+              <ElementConfig.Element key={choiceId} value={choiceId} data-testid={`${testId}:option-${choiceId}`}>
                 <Markdown>{label}</Markdown>
-                {config.isOther && <Input placeholder="Add an optional message..." onInput={handleMessage}/>}
+                {config.isOther && <Input placeholder="Add an optional message..." onInput={handleMessage} data-testid={`${testId}-other-input-${choiceId}`} />}
               </ElementConfig.Element>
             );
           })}

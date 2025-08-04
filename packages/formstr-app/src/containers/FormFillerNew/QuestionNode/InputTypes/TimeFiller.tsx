@@ -34,7 +34,7 @@ export const TimeFiller: React.FC<TimeFillerProps> = ({
       value={value}
       onSelect={(val) => setValue(val)}
       allowClear={false}
-      data-testid={testId}
+      data-testid={`${testId}:picker`}
     />
     </>
   );

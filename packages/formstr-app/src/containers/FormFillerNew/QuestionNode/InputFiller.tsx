@@ -45,7 +45,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           defaultValue={defaultValue as string}
           onChange={handleInputChange}
           placeholder="Please enter your response"
-          data-testid={testId}
+          data-testid={`${testId}:text-input`}
         />
       ),
       [AnswerTypes.paragraph]: (
@@ -53,7 +53,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           defaultValue={defaultValue as string}
           onChange={handleInputChange}
           placeholder="Please enter your response"
-          data-testid={testId}
+          data-testid={`${testId}:text-area`}
         />
       ),
       [AnswerTypes.number]: (
@@ -62,7 +62,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           onChange={handleValueChange}
           style={{ width: "100%" }}
           placeholder="Please enter your response"
-          data-testid={testId}
+          data-testid={`${testId}:number-input`}
         />
       ),
       [AnswerTypes.radioButton]: (
@@ -71,7 +71,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           options={options}
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
-          testId={testId}
+          testId={`${testId}:radio`}
         />
       ),
       [AnswerTypes.checkboxes]: (
@@ -80,7 +80,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           answerType={answerType as AnswerTypes.checkboxes}
           options={options}
           onChange={handleValueChange}
-          testId={testId}
+          testId={`${testId}:checkboxes`}
         />
       ),
       [AnswerTypes.dropdown]: (
@@ -88,21 +88,21 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           defaultValue={defaultValue as string}
           options={options}
           onChange={handleValueChange}
-          testId={testId}
+          testId={`${testId}:dropdown`}
         />
       ),
       [AnswerTypes.date]: (
         <DateFiller
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
-          testId={testId}
+          testId={`${testId}:date`}
         />
       ),
       [AnswerTypes.time]: (
         <TimeFiller
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
-          testId={testId}
+          testId={`${testId}:time`}
         />
       ),
     };

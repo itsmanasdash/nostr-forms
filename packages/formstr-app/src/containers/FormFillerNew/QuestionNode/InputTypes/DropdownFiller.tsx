@@ -24,7 +24,7 @@ export const DropdownFiller: React.FC<DropdownFillerProps> = ({
         })}
         defaultValue={defaultValue}
         placeholder="Select an option"
-        data-testid={testId}
+        data-testid={`${testId}:select`}
       />
     </>
   );

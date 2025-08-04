@@ -30,7 +30,7 @@ export const QuestionNode: React.FC<QuestionProps> = ({
   };
 
   return (
-    <Card type="inner" className="filler-question" data-testid={testId}>
+    <Card type="inner" className="filler-question" data-testid={`${testId}:card`}>
       {required && <span style={{ color: "#ea8dea" }}>* &nbsp;</span>}
       <div className="question-text">
         <Markdown>{label}</Markdown>
@@ -40,7 +40,7 @@ export const QuestionNode: React.FC<QuestionProps> = ({
         fieldConfig={fieldConfig}
         options={options}
         onChange={answerHandler(fieldId)}
-        testId={`${testId}-question-${fieldId}`}
+        testId={`${testId}:input`}
       />
     </Card>
   );

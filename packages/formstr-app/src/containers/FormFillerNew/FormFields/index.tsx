@@ -26,7 +26,7 @@ export const FormFields: React.FC<FormFieldsProps> = ({
       ...getValidationRules(fieldConfig.renderElement, fieldConfig),
     ];
     return (
-      <Form.Item key={fieldId} rules={rules} name={fieldId}>
+      <Form.Item key={fieldId} rules={rules} name={fieldId} data-testid={`${testId}:form-item-${fieldId}`}>
         <QuestionNode
           required={fieldConfig.required || false}
           label={label}
@@ -34,7 +34,7 @@ export const FormFields: React.FC<FormFieldsProps> = ({
           fieldId={fieldId}
           options={options}
           inputHandler={handleInput}
-          testId={testId}
+          testId={`${testId}:question-${fieldId}`}
         />
       </Form.Item>
     );
