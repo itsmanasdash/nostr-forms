@@ -196,9 +196,23 @@ export default function FormBuilderProvider({
       // If this was the last section, disable sections feature
       if (remaining.length === 0) {
         updateFormSetting({ enableSections: false });
+        return remaining;
       }
       
-      return remaining;
+      // Renumber the remaining sections
+      const renumberedSections = remaining.map((section, index) => {
+        const sectionNumber = index + 1;
+        const isDefaultTitle = /^Section \d+$/.test(section.title);
+        const newTitle = isDefaultTitle ? `Section ${sectionNumber}` : section.title;
+        
+        return {
+          ...section,
+          title: newTitle,
+          order: index
+        };
+      });
+      
+      return renumberedSections;
     });
   }, []);
 
@@ -231,7 +245,17 @@ export default function FormBuilderProvider({
   }, [sections]);
 
   const reorderSections = useCallback((newOrder: SectionData[]) => {
-    setSections(newOrder.map((section, index) => ({ ...section, order: index })));
+    setSections(newOrder.map((section, index) => {
+      const sectionNumber = index + 1;
+      const isDefaultTitle = /^Section \d+$/.test(section.title);
+      const newTitle = isDefaultTitle ? `Section ${sectionNumber}` : section.title;
+      
+      return {
+        ...section,
+        title: newTitle,
+        order: index
+      };
+    }));
   }, []);
 
   // Relay management functions

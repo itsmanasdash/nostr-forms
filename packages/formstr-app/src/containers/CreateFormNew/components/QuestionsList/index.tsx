@@ -295,6 +295,8 @@ export const QuestionsList = () => {
             <Section 
               key={section.id} 
               section={section}
+              sectionIndex={sections.indexOf(section) + 1}
+              totalSections={sections.length}
             >
               {sectionQuestions.length === 0 ? (
                 <Empty 

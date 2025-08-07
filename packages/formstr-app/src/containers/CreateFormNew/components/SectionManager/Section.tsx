@@ -11,47 +11,39 @@ const { TextArea } = Input;
 
 const SectionWrapper = styled.div`
   margin-bottom: 24px;
-
   .section-header {
     margin-bottom: 16px;
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
   }
-
   .section-title {
     font-size: 18px;
     font-weight: 500;
     width: 100%;
     margin-bottom: 8px;
   }
-
   .section-title-input {
     font-size: 18px;
     font-weight: 500;
     margin-bottom: 8px;
   }
-
   .section-description {
     color: rgba(0, 0, 0, 0.65);
     width: 100%;
   }
-
   .section-content {
     margin-top: 16px;
   }
-
   .section-actions {
     display: flex;
     gap: 8px;
     margin-left: 16px;
   }
-
   .collapsed-indicator {
     margin-left: 8px;
     color: rgba(0, 0, 0, 0.45);
   }
-
   .drop-indicator {
     position: absolute;
     top: 0;
@@ -69,12 +61,58 @@ const SectionWrapper = styled.div`
   }
 `;
 
+const StyledCard = styled(Card)`
+  position: relative;
+  transition: all 0.2s;
+  border-radius: 8px 8px 8px 8px !important;
+  margin-top: -6px;
+  z-index: 2;
+  
+  .ant-card-head {
+    border-bottom: none;
+  }
+  
+  .ant-card-body {
+    padding-top: 16px;
+  }
+`;
+
+const OrangeStrip = styled.div`
+  height: 12px;
+  background: #ff5733;
+  margin-bottom: 0;
+  border-radius: 0 9px 0px 0px;
+  z-index: 1;
+  position: relative;
+`;
+
+const SectionLabel = styled.div`
+  background: #ff5733;
+  color: white;
+  padding: 2px 16px;
+  border-radius: 6px 6px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 0;
+  display: inline-block;
+  margin-left: 0;
+  position: relative;
+  z-index: 2;
+`;
+
 interface SectionProps {
   section: SectionData;
   children: React.ReactNode;
+  sectionIndex?: number;
+  totalSections?: number;
 }
 
-const Section: React.FC<SectionProps> = ({ section, children }) => {
+const Section: React.FC<SectionProps> = ({ 
+  section, 
+  children, 
+  sectionIndex = 1, 
+  totalSections = 1 
+}) => {
   const {
     updateSection,
     removeSection,
@@ -130,76 +168,81 @@ const Section: React.FC<SectionProps> = ({ section, children }) => {
   };
 
   return (
-    <div
-      style={{ position: "relative" }}
-      onDragOver={handleDragOver}
-      onDragLeave={handleDragLeave}
-      onDrop={handleDrop}
-    >
-      {isDropTarget && (
-        <div className="drop-indicator">
-          <Text strong>Drop question here</Text>
-        </div>
-      )}
-
-      <Card
-        style={{
-          marginBottom: 24,
-          position: "relative",
-          transition: "all 0.2s",
-          border: isDropTarget ? "1px solid #1890ff" : "1px solid #f0f0f0",
-        }}
-        extra={
-          <Space>
-            <Button
-              type="text"
-              icon={collapsed ? <DownOutlined /> : <UpOutlined />}
-              onClick={() => setCollapsed(!collapsed)}
-            />
-            <SectionDeleteButton
-              onDelete={handleDelete}
-              onDeleteWithQuestions={handleDeleteWithQuestions}
-              questionCount={section.questionIds.length}
-              sectionTitle={section.title}
-              className="action-icon"
-            />
-          </Space>
-        }
+    <div style={{ marginBottom: '24px' }}>
+      <SectionLabel>
+        Section {sectionIndex} of {totalSections}
+      </SectionLabel>
+      
+      <OrangeStrip />
+      
+      <div
+        style={{ position: "relative" }}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
       >
-        <SectionWrapper>
-          <div className="section-header">
-            <div style={{ width: "100%" }}>
-              <Input
-                className="section-title-input"
-                value={section.title || ""}
-                onChange={handleTitleChange}
-                placeholder="Section title"
-                onClick={(e) => e.stopPropagation()}
-                bordered={false}
-              />
-
-              {!collapsed && (
-                <TextArea
-                  className="section-description"
-                  value={section.description || ""}
-                  onChange={handleDescriptionChange}
-                  placeholder="Click to edit section description"
-                  autoSize
-                  bordered={false}
-                  onClick={(e) => e.stopPropagation()}
-                />
-              )}
-            </div>
+        {isDropTarget && (
+          <div className="drop-indicator">
+            <Text strong>Drop question here</Text>
           </div>
+        )}
 
-          {!collapsed && (
-            <>
-              <Divider />
-              <div className="section-content">{children}</div>
-            </>
-          )}
-        </SectionWrapper>
-      </Card>
+        <StyledCard
+          style={{
+            border: isDropTarget ? "1px solid #1890ff" : "1px solid #f0f0f0",
+          }}
+          extra={
+            <Space>
+              <Button
+                type="text"
+                icon={collapsed ? <DownOutlined /> : <UpOutlined />}
+                onClick={() => setCollapsed(!collapsed)}
+              />
+              <SectionDeleteButton
+                onDelete={handleDelete}
+                onDeleteWithQuestions={handleDeleteWithQuestions}
+                questionCount={section.questionIds.length}
+                sectionTitle={section.title}
+                className="action-icon"
+              />
+            </Space>
+          }
+        >
+          <SectionWrapper>
+            <div className="section-header">
+              <div style={{ width: "100%" }}>
+                <Input
+                  className="section-title-input"
+                  value={section.title || ""}
+                  onChange={handleTitleChange}
+                  placeholder="Section title"
+                  onClick={(e) => e.stopPropagation()}
+                  bordered={false}
+                />
+
+                {!collapsed && (
+                  <TextArea
+                    className="section-description"
+                    value={section.description || ""}
+                    onChange={handleDescriptionChange}
+                    placeholder="Click to edit section description"
+                    autoSize
+                    bordered={false}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                )}
+              </div>
+            </div>
+
+            {!collapsed && (
+              <>
+                <Divider />
+                <div className="section-content">{children}</div>
+              </>
+            )}
+          </SectionWrapper>
+        </StyledCard>
+      </div>
     </div>
   );
 };

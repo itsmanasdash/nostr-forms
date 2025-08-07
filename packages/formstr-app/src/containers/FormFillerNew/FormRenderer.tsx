@@ -108,6 +108,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   const contentItems = createContentFlow();
   const currentItem = contentItems[currentStep];
   const isLastStep = currentStep >= contentItems.length - 1;
+  const showStepper = enableSections && contentItems.length > 1;
 
   // Calculate progress
   const progress = ((currentStep + (completedSteps.has(currentStep) ? 1 : 0)) / contentItems.length) * 100;
@@ -167,23 +168,20 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   const renderSteppedForm = () => (
     <div>
-      {/* Progress Bar */}
-      <div style={{ marginBottom: 24 }}>
-        <Progress 
-          percent={Math.round(progress)} 
-          showInfo={false}
-          strokeColor="#FF5733"
-        />
-        <Text type="secondary" style={{ fontSize: '12px' }}>
-          {enableSections 
-            ? `Step ${currentStep + 1} of ${contentItems.length}`
-            : 'Complete'
-          }
-        </Text>
-      </div>
+      {showStepper && (
+        <div style={{ marginBottom: 24 }}>
+          <Progress 
+            percent={Math.round(progress)} 
+            showInfo={false}
+            strokeColor="#FF5733"
+          />
+          <Text type="secondary" style={{ fontSize: '12px' }}>
+            Step {currentStep + 1} of {contentItems.length}
+          </Text>
+        </div>
+      )}
 
-      {/* Steps Navigation */}
-      {enableSections && contentItems.length > 1 && (
+      {showStepper && (
         <Steps
           current={currentStep}
           size="small"
@@ -212,7 +210,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       {/* Current Step Content */}
       {currentItem && (
         <>
-          {enableSections && contentItems.length > 1 && (
+          {showStepper && (
             <Card style={{ marginBottom: 24 }}>
               <Title level={4}>{currentItem.title}</Title>
               {currentItem.description && (
@@ -233,8 +231,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         </>
       )}
 
-      {/* Navigation Buttons */}
-      {enableSections && contentItems.length > 1 && (
+      {showStepper && (
         <Space style={{ marginTop: 24, width: '100%', justifyContent: 'space-between' }}>
           <Button
             onClick={handleBack}
@@ -257,8 +254,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         </Space>
       )}
 
-      {/* Submit button for non-stepped forms */}
-      {(!enableSections || contentItems.length <= 1) && footer}
+      {!showStepper && footer}
     </div>
   );
 

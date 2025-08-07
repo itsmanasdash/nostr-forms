@@ -42,7 +42,8 @@ export const SectionProgressIndicator: React.FC<SectionProgressIndicatorProps> =
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-        <Progress 
+        {totalSections > 1 && (
+          <Progress 
           percent={Math.round(progress)} 
           showInfo={false}
           strokeColor={{
@@ -51,6 +52,7 @@ export const SectionProgressIndicator: React.FC<SectionProgressIndicatorProps> =
           }}
           style={{ flex: 1 }}
         />
+        )}
         <Text type="secondary" style={{ fontSize: '12px', whiteSpace: 'nowrap' }}>
           {completedCount} of {totalSections} completed
         </Text>
