@@ -24,7 +24,7 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
   onSubmitClick,
   viewKey,
   hideDescription,
-  hideTitleImage
+  hideTitleImage,
 }) => {
   const { pubkey: userPubKey, requestPubkey } = useProfileContext();
   const [form] = Form.useForm();
@@ -49,7 +49,6 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
         () => {},
         viewKey
       );
-
       if (formSpec) {
         const settings = JSON.parse(
           formSpec.find((tag) => tag[0] === "settings")?.[1] || "{}"
@@ -162,8 +161,8 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
       form={form}
       onInput={handleInput}
       footer={footer}
-      hideTitleImage={hideTitleImage}         
-      hideDescription={hideDescription}       
+      hideTitleImage={hideTitleImage}
+      hideDescription={hideDescription}
     />
   );
 };
