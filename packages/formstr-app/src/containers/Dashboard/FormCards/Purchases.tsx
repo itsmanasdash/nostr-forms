@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { StoredForm } from "./types";
 import axios from "../../../utils/axiosInstance";
 import { FormEventCard } from "../FormCards/FormEventCard";
-import { Row, Col, Typography, Skeleton, Card } from "antd";
+import { Typography, Skeleton } from "antd";
 import { useApplicationContext } from "../../../hooks/useApplicationContext";
 import { SubCloser } from "nostr-tools/abstract-pool";
 import { Event } from "nostr-tools";
@@ -110,12 +110,12 @@ export const Purchases: React.FC = () => {
   if (formsReady.length === 0) return <Text>No purchases found.</Text>;
 
   return (
-    <Row gutter={[16, 16]} style={{ padding: 16 }}>
+    <div style={{ padding: 16, display: "flex", flexDirection: "column", alignItems: "center", marginLeft: "15%" }}>
       {formsReady.map(({ form, event }, index) => {
         const shortUrlColor = pastelColors[index % pastelColors.length];
         const expiresColor = pastelColors[(index + 1) % pastelColors.length];
         return (
-          <Col span={24} key={form.id}>
+          <div key={form.id} style={{ width: "80%", minWidth: "1000px"}}>
             <div style={{ position: "relative" }}>
               {event ? (
                 <FormEventCard
@@ -124,7 +124,9 @@ export const Purchases: React.FC = () => {
                   shortLink={`/i/${form.slug}`}
                 />
               ) : (
-                <Skeleton active />
+                <div style={{ width: "80%" , padding : 16}}>
+                  <Skeleton active />
+                </div>
               )}
 
               <div
@@ -173,9 +175,9 @@ export const Purchases: React.FC = () => {
                 </Flair>
               </div>
             </div>
-          </Col>
+          </div>
         );
       })}
-    </Row>
+    </div>
   );
 };
