@@ -184,7 +184,7 @@ export const QuestionsList = () => {
   // Separate questions by sections
   const renderQuestions = () => {
     // If sections are not enabled or no sections exist, render questions as usual
-    if (!formSettings.enableSections || !sections || sections.length === 0) {
+    if (!sections || sections.length === 0) {
       return (
         <div>
           <Reorder.Group

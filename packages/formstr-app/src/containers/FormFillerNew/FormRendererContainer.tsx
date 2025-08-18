@@ -58,7 +58,7 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
       }
     };
     initialize();
-  }, [formEvent, userPubKey, viewKey]);
+  }, []);
 
   const handleInput = (
     questionId: string,

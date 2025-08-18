@@ -11,5 +11,4 @@ export interface IFormSettings {
   viewKeyInUrl?: boolean;
   formId?: string;
   sections?: SectionData[];
-  enableSections?: boolean;
 }

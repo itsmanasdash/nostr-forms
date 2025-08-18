@@ -82,7 +82,6 @@ const InitialFormSettings: IFormSettings = {
   formId: makeTag(6),
   encryptForm: true,
   viewKeyInUrl: true,
-  enableSections: false,
   sections: [],
 };
 
@@ -188,9 +187,9 @@ export default function FormBuilderProvider({
     setSections(prev => [...prev, newSection]);
     
     // Enable sections in form settings if first section
-    if (sections.length === 0) {
-      updateFormSetting({ enableSections: true });
-    }
+    // if (sections.length === 0) {
+    //   updateFormSetting({ enableSections: true });
+    // }
     
     return newSection;
   }, [sections.length]);
@@ -209,10 +208,10 @@ export default function FormBuilderProvider({
       const remaining = prev.filter(section => section.id !== id);
       
       // If this was the last section, disable sections feature
-      if (remaining.length === 0) {
-        updateFormSetting({ enableSections: false });
-        return remaining;
-      }
+      // if (remaining.length === 0) {
+      //   updateFormSetting({ enableSections: false });
+      //   return remaining;
+      // }
       
       // Renumber the remaining sections
       const renumberedSections = remaining.map((section, index) => {
@@ -339,7 +338,7 @@ export default function FormBuilderProvider({
     
     const settingsWithSections = {
       ...formSettings,
-      sections: formSettings.enableSections ? sections : []
+      sections: sections
     };
     formSpec.push(["settings", JSON.stringify(settingsWithSections)]);
     formSpec = [...formSpec, ...questionsList];
@@ -430,7 +429,7 @@ export default function FormBuilderProvider({
     setQuestionsList([...questionsList, newQuestion]);
     
     // If sections are enabled and exist, add to the last section
-    if (formSettings.enableSections && sections.length > 0) {
+    if (!!sections.length) {
       const lastSection = sections[sections.length - 1];
       moveQuestionToSection(newQuestion[1], lastSection.id);
     }

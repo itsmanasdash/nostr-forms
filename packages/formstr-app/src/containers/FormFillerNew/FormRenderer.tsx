@@ -53,7 +53,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
   
   const sections = settings.sections || [];
-  const enableSections = settings.enableSections && sections.length > 0;
+  const enableSections = !!sections.length;
 
   // Create mixed content flow
   const createContentFlow = (): ContentItem[] => {

@@ -123,7 +123,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({
         />
         
         {/* Section selector - only show if sections are enabled */}
-        {formSettings.enableSections && sections.length > 0 && (
+        {!!sections.length && (
           <div style={{ marginBottom: 16 }}>
             <Space>
               <span style={{ fontSize: 12, color: '#8c8c8c' }}>Section:</span>
