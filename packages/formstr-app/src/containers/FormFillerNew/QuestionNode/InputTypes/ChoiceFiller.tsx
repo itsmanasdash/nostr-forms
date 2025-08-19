@@ -20,6 +20,7 @@ interface ChoiceFillerProps {
   onChange: (value: string, message: string) => void;
   defaultValue?: string;
   disabled?: boolean;
+  testId? : string;
 }
 
 export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
@@ -28,6 +29,7 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
   onChange,
   defaultValue,
   disabled = false,
+  testId = "choice-filler",
 }) => {
   const [otherMessage, setOtherMessage] = useState("");
   
@@ -70,15 +72,16 @@ export const ChoiceFiller: React.FC<ChoiceFillerProps> = ({
         onChange={handleChoiceChange}
         value={ElementConfig.defaultValue}
         disabled={disabled}
+        data-testid={`${testId}:group`}
       >
         <Space direction="vertical">
           {options.map((choice) => {
             let [choiceId, label, configString] = choice;
             let config = JSON.parse(configString || "{}")
             return (
-              <ElementConfig.Element key={choiceId} value={choiceId} disabled={disabled}>
+              <ElementConfig.Element key={choiceId} value={choiceId} disabled={disabled} data-testid={`${testId}:option-${choiceId}`}>
                 <Markdown>{label}</Markdown>
-                {config.isOther && <Input placeholder="Add an optional message..." onInput={handleMessage} disabled={disabled}/>} 
+                {config.isOther && <Input placeholder="Add an optional message..." onInput={handleMessage} disabled={disabled} data-testid={`${testId}-other-input-${choiceId}`} />}
               </ElementConfig.Element>
             );
           })}

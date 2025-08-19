@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState, useCallback } from "react";
-import { AnswerSettings } from "@formstr/sdk/dist/interfaces";
-import { FormInitData, IFormBuilderContext, RelayItem } from "./typeDefs";
+import React, { useEffect, createContext, FC, ReactNode, useRef, useState, useCallback } from "react";
+import { SimplePool } from "nostr-tools";
+import { FormInitData, IFormBuilderContext, RelayItem, SectionData } from "./typeDefs";
 import { generateQuestion } from "../../utils";
 import { getDefaultRelays } from "@formstr/sdk";
 import { makeTag } from "../../../../utils/utility";
@@ -12,10 +12,15 @@ import { getPublicKey } from "nostr-tools";
 import { useNavigate } from "react-router-dom";
 import { useProfileContext } from "../../../../hooks/useProfileContext";
 import { createForm } from "../../../../nostr/createForm";
-import { getItem, LOCAL_STORAGE_KEYS, setItem} from "../../../../utils/localStorage";
+import {
+  getItem,
+  LOCAL_STORAGE_KEYS,
+  setItem,
+} from "../../../../utils/localStorage";
 import { Field } from "../../../../nostr/types";
-import { message } from 'antd';
+import { message } from "antd";
 import { ProcessedFormData } from "../../components/AIFormGeneratorModal/aiProcessor";
+import { AnswerSettings } from "@formstr/sdk/dist/interfaces";
 
 const LOCAL_STORAGE_CUSTOM_RELAYS_KEY = "formstr:customRelays";
 
@@ -58,6 +63,13 @@ export const FormBuilderContext = React.createContext<IFormBuilderContext>({
   isAiModalOpen: false,
   setIsAiModalOpen: () => null,
   handleAIFormGenerated: () => null,
+  sections: [],
+  addSection: () => ({ id: '', title: '', questionIds: [] }),
+  updateSection: () => {},
+  removeSection: () => {},
+  moveQuestionToSection: () => {},
+  getSectionForQuestion: () => null,
+  reorderSections: () => {},
 });
 
 const InitialFormSettings: IFormSettings = {
@@ -70,6 +82,7 @@ const InitialFormSettings: IFormSettings = {
   formId: makeTag(6),
   encryptForm: true,
   viewKeyInUrl: true,
+  sections: [],
 };
 
 export default function FormBuilderProvider({
@@ -82,8 +95,11 @@ export default function FormBuilderProvider({
   const [questionsList, setQuestionsList] = useState<Array<Field>>([
     generateQuestion(),
   ]);
-  const [questionIdInFocus, setQuestionIdInFocus] = useState<string | undefined>();
-  const [formSettings, setFormSettings] = useState<IFormSettings>(InitialFormSettings);
+  const [questionIdInFocus, setQuestionIdInFocus] = useState<
+    string | undefined
+  >();
+  const [formSettings, setFormSettings] =
+    useState<IFormSettings>(InitialFormSettings);
   const [isRightSettingsOpen, setIsRightSettingsOpen] = useState(false);
   const [isLeftMenuOpen, setIsLeftMenuOpen] = useState(false);
   const [formName, setFormName] = useState<string>(
@@ -95,21 +111,29 @@ export default function FormBuilderProvider({
     new Set(userPubkey ? [userPubkey] : [])
   );
   const [viewList, setViewList] = useState<Set<string>>(new Set([]));
-  const [selectedTab, setSelectedTab] = useState<string>(HEADER_MENU_KEYS.BUILDER);
+  const [selectedTab, setSelectedTab] = useState<string>(
+    HEADER_MENU_KEYS.BUILDER
+  );
   const [secretKey, setSecretKey] = useState<string | null>(null);
   const [viewKey, setViewKey] = useState<string | null | undefined>(null);
   const [isAiModalOpen, setIsAiModalOpen] = useState(false);
   const navigate = useNavigate();
+  const [sections, setSections] = useState<SectionData[]>([]);
 
   const [relayList, setRelayList] = useState<RelayItem[]>([]);
   const [isRelayManagerModalOpen, setIsRelayManagerModalOpen] = useState(false);
+  
   useEffect(() => {
     let baseList: RelayItem[];
-    const storedUserManagedRelays = getItem<RelayItem[]>(LOCAL_STORAGE_CUSTOM_RELAYS_KEY);
+    const storedUserManagedRelays = getItem<RelayItem[]>(
+      LOCAL_STORAGE_CUSTOM_RELAYS_KEY
+    );
 
     if (userRelays && userRelays.length > 0) {
-      baseList = userRelays.map(url => {
-        const existingStoredRelay = storedUserManagedRelays?.find(r => r.url === url);
+      baseList = userRelays.map((url) => {
+        const existingStoredRelay = storedUserManagedRelays?.find(
+          (r) => r.url === url
+        );
         return existingStoredRelay || { url, tempId: makeTag(6) };
       });
     } else if (storedUserManagedRelays) {
@@ -120,32 +144,137 @@ export default function FormBuilderProvider({
 
     const defaultRelayUrls = getDefaultRelays();
     const finalRelayList = [...baseList];
-    const baseListUrls = new Set(baseList.map(r => r.url));
+    const baseListUrls = new Set(baseList.map((r) => r.url));
 
-    defaultRelayUrls.forEach(defaultUrl => {
+    defaultRelayUrls.forEach((defaultUrl) => {
       if (!baseListUrls.has(defaultUrl)) {
-        const existingStoredDefault = storedUserManagedRelays?.find(r => r.url === defaultUrl);
+        const existingStoredDefault = storedUserManagedRelays?.find(
+          (r) => r.url === defaultUrl
+        );
         if (existingStoredDefault) {
-            finalRelayList.push(existingStoredDefault);
+          finalRelayList.push(existingStoredDefault);
         } else {
-            finalRelayList.push({ url: defaultUrl, tempId: makeTag(6) });
+          finalRelayList.push({ url: defaultUrl, tempId: makeTag(6) });
         }
       }
     });
-    
+
     const uniqueRelayMap = new Map<string, RelayItem>();
-    baseList.forEach(relay => uniqueRelayMap.set(relay.url, relay));
-    finalRelayList.forEach(relay => {
-        if (!uniqueRelayMap.has(relay.url)) {
-            uniqueRelayMap.set(relay.url, relay);
-        }
+    baseList.forEach((relay) => uniqueRelayMap.set(relay.url, relay));
+    finalRelayList.forEach((relay) => {
+      if (!uniqueRelayMap.has(relay.url)) {
+        uniqueRelayMap.set(relay.url, relay);
+      }
     });
     const uniqueFinalRelayList = Array.from(uniqueRelayMap.values());
 
     setRelayList(uniqueFinalRelayList);
   }, [userRelays]);
+
+  // Section management functions
+  const addSection = useCallback((title?: string, description = ""): SectionData => {
+    const sectionNumber = sections.length + 1;
+    const defaultTitle = title || `Section ${sectionNumber}`;
+    
+    const newSection: SectionData = {
+      id: makeTag(8),
+      title: defaultTitle,
+      description,
+      questionIds: [],
+      order: sections.length
+    };
+    
+    setSections(prev => [...prev, newSection]);
+    
+    // Enable sections in form settings if first section
+    // if (sections.length === 0) {
+    //   updateFormSetting({ enableSections: true });
+    // }
+    
+    return newSection;
+  }, [sections.length]);
+
+  const updateSection = useCallback((id: string, updates: Partial<SectionData>) => {
+    setSections(prev => 
+      prev.map(section => 
+        section.id === id ? { ...section, ...updates } : section
+      )
+    );
+  }, []);
+
+  const removeSection = useCallback((id: string) => {
+    setSections(prev => {
+      const sectionToRemove = prev.find(s => s.id === id);
+      const remaining = prev.filter(section => section.id !== id);
+      
+      // If this was the last section, disable sections feature
+      // if (remaining.length === 0) {
+      //   updateFormSetting({ enableSections: false });
+      //   return remaining;
+      // }
+      
+      // Renumber the remaining sections
+      const renumberedSections = remaining.map((section, index) => {
+        const sectionNumber = index + 1;
+        const isDefaultTitle = /^Section \d+$/.test(section.title);
+        const newTitle = isDefaultTitle ? `Section ${sectionNumber}` : section.title;
+        
+        return {
+          ...section,
+          title: newTitle,
+          order: index
+        };
+      });
+      
+      return renumberedSections;
+    });
+  }, []);
+
+  const moveQuestionToSection = useCallback((questionId: string, sectionId?: string) => {
+    setSections(prev => {
+      const updated = prev.map(section => ({
+        ...section,
+        questionIds: section.questionIds.filter(qId => qId !== questionId)
+      }));
+      
+      if (sectionId) {
+        return updated.map(section => {
+          if (section.id === sectionId) {
+            return {
+              ...section,
+              questionIds: [...section.questionIds, questionId]
+            };
+          }
+          return section;
+        });
+      }
+      
+      return updated;
+    });
+  }, []);
+
+  const getSectionForQuestion = useCallback((questionId: string): string | null => {
+    const section = sections.find(s => s.questionIds.includes(questionId));
+    return section ? section.id : null;
+  }, [sections]);
+
+  const reorderSections = useCallback((newOrder: SectionData[]) => {
+    setSections(newOrder.map((section, index) => {
+      const sectionNumber = index + 1;
+      const isDefaultTitle = /^Section \d+$/.test(section.title);
+      const newTitle = isDefaultTitle ? `Section ${sectionNumber}` : section.title;
+      
+      return {
+        ...section,
+        title: newTitle,
+        order: index
+      };
+    }));
+  }, []);
+
+  // Relay management functions
   const toggleRelayManagerModal = useCallback(() => {
-    setIsRelayManagerModalOpen(prev => !prev);
+    setIsRelayManagerModalOpen((prev) => !prev);
   }, []);
 
   const addRelayToList = useCallback((url: string) => {
@@ -156,7 +285,7 @@ export default function FormBuilderProvider({
         }
         const newRelay: RelayItem = { url, tempId: makeTag(6) };
         const updatedList = [...prevRelayList, newRelay];
-        setItem(LOCAL_STORAGE_CUSTOM_RELAYS_KEY, updatedList.filter(r => !getDefaultRelays().includes(r.url))); // Only store custom relays
+        setItem(LOCAL_STORAGE_CUSTOM_RELAYS_KEY, updatedList.filter(r => !getDefaultRelays().includes(r.url)));
         return updatedList;
     });
   }, []);
@@ -170,18 +299,23 @@ export default function FormBuilderProvider({
         const updatedList = prevRelayList.map(relay =>
             relay.tempId === tempId ? { ...relay, url: newUrl } : relay
         );
-        setItem(LOCAL_STORAGE_CUSTOM_RELAYS_KEY, updatedList.filter(r => !getDefaultRelays().includes(r.url))); // Only store custom relays
+        setItem(LOCAL_STORAGE_CUSTOM_RELAYS_KEY, updatedList.filter(r => !getDefaultRelays().includes(r.url)));
         return updatedList;
     });
   }, []);
 
   const deleteRelayFromList = useCallback((tempId: string) => {
-    setRelayList(prevRelayList => {
-        const relayToDelete = prevRelayList.find(r => r.tempId === tempId);
-        if (!relayToDelete) return prevRelayList;
-        let updatedList = prevRelayList.filter(relay => relay.tempId !== tempId);
-        setItem(LOCAL_STORAGE_CUSTOM_RELAYS_KEY, updatedList.filter(r => !getDefaultRelays().includes(r.url))); // Only store custom relays
-        return updatedList;
+    setRelayList((prevRelayList) => {
+      const relayToDelete = prevRelayList.find((r) => r.tempId === tempId);
+      if (!relayToDelete) return prevRelayList;
+      let updatedList = prevRelayList.filter(
+        (relay) => relay.tempId !== tempId
+      );
+      setItem(
+        LOCAL_STORAGE_CUSTOM_RELAYS_KEY,
+        updatedList.filter((r) => !getDefaultRelays().includes(r.url))
+      ); // Only store custom relays
+      return updatedList;
     });
   }, []);
 
@@ -201,7 +335,12 @@ export default function FormBuilderProvider({
     let formSpec: Tag[] = [];
     formSpec.push(["d", formSettings.formId || ""]);
     formSpec.push(["name", formName]);
-    formSpec.push(["settings", JSON.stringify(formSettings)]);
+    
+    const settingsWithSections = {
+      ...formSettings,
+      sections: sections
+    };
+    formSpec.push(["settings", JSON.stringify(settingsWithSections)]);
     formSpec = [...formSpec, ...questionsList];
     return formSpec;
   };
@@ -236,13 +375,16 @@ export default function FormBuilderProvider({
             secretKey: bytesToHex(signingKey),
             viewKey: formSettings.viewKeyInUrl ? bytesToHex(formViewKey) : null,
             name: formName,
-            relay: acceptedRelays.length > 0 ? acceptedRelays[0] : "",
+            relays: relayUrls,
           },
         });
       },
       (error) => {
         console.error("Error creating form:", error);
-        message.error("Error creating the form: " + (error instanceof Error ? error.message : String(error)));
+        message.error(
+          "Error creating the form: " +
+            (error instanceof Error ? error.message : String(error))
+        );
       }
     );
   };
@@ -283,10 +425,15 @@ export default function FormBuilderProvider({
     answerSettings?: AnswerSettings
   ) => {
     setIsLeftMenuOpen(false);
-    setQuestionsList([
-      ...questionsList,
-      generateQuestion(primitive, label, [], answerSettings),
-    ]);
+    const newQuestion = generateQuestion(primitive, label, [], answerSettings);
+    setQuestionsList([...questionsList, newQuestion]);
+    
+    // If sections are enabled and exist, add to the last section
+    if (!!sections.length) {
+      const lastSection = sections[sections.length - 1];
+      moveQuestionToSection(newQuestion[1], lastSection.id);
+    }
+    
     setTimeout(() => {
       bottomElement?.current?.scrollIntoView({ behavior: "smooth" });
     }, 200);
@@ -296,6 +443,10 @@ export default function FormBuilderProvider({
     if (questionIdInFocus === tempId) {
       setQuestionIdInFocus(undefined);
     }
+    
+    // Remove from sections
+    moveQuestionToSection(tempId, undefined);
+    
     setQuestionsList((preQuestions) => {
       return preQuestions.filter((question) => question[1] !== tempId);
     });
@@ -322,9 +473,21 @@ export default function FormBuilderProvider({
       form.spec.filter((f) => f[0] === "settings")?.[0]?.[1] || "{}"
     );
     settingsFromFile = { ...InitialFormSettings, ...settingsFromFile };
+    
+    // Load sections if they exist
+    if (settingsFromFile.sections && Array.isArray(settingsFromFile.sections)) {
+      setSections(settingsFromFile.sections);
+    }
+    
     let fields = form.spec.filter((f) => f[0] === "field") as Field[];
-    setFormSettings((currentSettings) => ({ ...currentSettings, ...settingsFromFile, formId: form.id }));
-    let newViewList = form.spec.filter((f) => f[0] === "allowed").map((t) => t[1]);
+    setFormSettings((currentSettings) => ({
+      ...currentSettings,
+      ...settingsFromFile,
+      formId: form.id,
+    }));
+    let newViewList = form.spec
+      .filter((f) => f[0] === "allowed")
+      .map((t) => t[1]);
     let allKeys = form.spec.filter((f) => f[0] === "p").map((t) => t[1]);
     let newEditList: string[] = allKeys.filter((p) => !newViewList.includes(p));
     setViewList(new Set(newViewList));
@@ -336,24 +499,26 @@ export default function FormBuilderProvider({
 
   const handleAIFormGenerated = (processedData: ProcessedFormData) => {
     try {
-        if (processedData.formName) {
-            setFormName(processedData.formName);
-        }
-        if (processedData.description) {
-            updateFormSetting({ description: processedData.description });
-        }
-        if (processedData.fields && processedData.fields.length > 0) {
-            updateQuestionsList(processedData.fields);
-            setQuestionIdInFocus(undefined);
-        } else {
-            message.warning("AI generated data, but no fields were created.");
-        }
+      if (processedData.formName) {
+        setFormName(processedData.formName);
+      }
+      if (processedData.description) {
+        updateFormSetting({ description: processedData.description });
+      }
+      if (processedData.fields && processedData.fields.length > 0) {
+        updateQuestionsList(processedData.fields);
+        setQuestionIdInFocus(undefined);
+      } else {
+        message.warning("AI generated data, but no fields were created.");
+      }
     } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : "Failed to apply the generated form data.";
-        message.error(errorMsg);
+      const errorMsg =
+        error instanceof Error
+          ? error.message
+          : "Failed to apply the generated form data.";
+      message.error(errorMsg);
     }
   };
-
 
   return (
     <FormBuilderContext.Provider
@@ -396,6 +561,13 @@ export default function FormBuilderProvider({
         isAiModalOpen,
         setIsAiModalOpen,
         handleAIFormGenerated,
+        sections,
+        addSection,
+        updateSection,
+        removeSection,
+        moveQuestionToSection,
+        getSectionForQuestion,
+        reorderSections,
       }}
     >
       {children}

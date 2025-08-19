@@ -13,6 +13,7 @@ interface QuestionProps {
   required: boolean;
   disabled?: boolean;
   value?: any;
+  testId: string;
 }
 
 export const QuestionNode: React.FC<QuestionProps> = ({
@@ -24,6 +25,7 @@ export const QuestionNode: React.FC<QuestionProps> = ({
   required,
   disabled = false,
   value,
+  testId,
 }) => {
   const answerHandler = (questionId: string) => {
     return (answer: string, message?: string) => {
@@ -32,7 +34,7 @@ export const QuestionNode: React.FC<QuestionProps> = ({
   };
 
   return (
-    <Card type="inner" className="filler-question">
+    <Card type="inner" className="filler-question" data-testid={`${testId}:card`}>
       {required && <span style={{ color: "#ea8dea" }}>* &nbsp;</span>}
       <div className="question-text">
         <Markdown>{label}</Markdown>
@@ -44,6 +46,7 @@ export const QuestionNode: React.FC<QuestionProps> = ({
         onChange={answerHandler(fieldId)}
         disabled={disabled}
         defaultValue={value ? value[0] : undefined}
+        testId={`${testId}:input`}
       />
     </Card>
   );

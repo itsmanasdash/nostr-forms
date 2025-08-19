@@ -14,6 +14,7 @@ interface InputFillerProps {
   onChange: (answer: string, message?: string) => void;
   defaultValue?: string | number | boolean;
   disabled?: boolean;
+  testId? : string;
 }
 
 export const InputFiller: React.FC<InputFillerProps> = ({
@@ -22,6 +23,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
   onChange,
   defaultValue,
   disabled = false,
+  testId = "input-filler",
 }) => {
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -46,6 +48,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           onChange={handleInputChange}
           placeholder="Please enter your response"
           disabled={disabled}
+          data-testid={`${testId}:text-input`}
         />
       ),
       [AnswerTypes.paragraph]: (
@@ -54,6 +57,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           onChange={handleInputChange}
           placeholder="Please enter your response"
           disabled={disabled}
+          data-testid={`${testId}:text-area`}
         />
       ),
       [AnswerTypes.number]: (
@@ -63,6 +67,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           style={{ width: "100%" }}
           placeholder="Please enter your response"
           disabled={disabled}
+          data-testid={`${testId}:number-input`}
         />
       ),
       [AnswerTypes.radioButton]: (
@@ -72,6 +77,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled}
+          testId={`${testId}:radio`}
         />
       ),
       [AnswerTypes.checkboxes]: (
@@ -81,6 +87,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           options={options}
           onChange={handleValueChange}
           disabled={disabled}
+          testId={`${testId}:checkboxes`}
         />
       ),
       [AnswerTypes.dropdown]: (
@@ -89,6 +96,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           options={options}
           onChange={handleValueChange}
           disabled={disabled}
+          testId={`${testId}:dropdown`}
         />
       ),
       [AnswerTypes.date]: (
@@ -96,6 +104,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled}
+          testId={`${testId}:date`}
         />
       ),
       [AnswerTypes.time]: (
@@ -103,6 +112,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled}
+          testId={`${testId}:time`}
         />
       ),
     };

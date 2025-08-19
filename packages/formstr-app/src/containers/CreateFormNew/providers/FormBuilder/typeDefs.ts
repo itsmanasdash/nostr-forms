@@ -4,7 +4,7 @@ import { Tag } from "@formstr/sdk/dist/formstr/nip101";
 import { Field } from "../../../../nostr/types";
 import { ProcessedFormData } from "../../components/AIFormGeneratorModal/aiProcessor";
 
-export type RelayStatus = 'connected' | 'pending' | 'error' | 'unknown';
+export type RelayStatus = "connected" | "pending" | "error" | "unknown";
 export interface RelayItem {
   url: string;
   tempId: string;
@@ -20,6 +20,7 @@ export interface ILocalForm {
   formCredentials?: Array<string>;
   formId: string;
   relay: string;
+  relays: string[];
 }
 
 export interface FormInitData {
@@ -27,6 +28,14 @@ export interface FormInitData {
   id: string;
   secret?: string;
   viewKey?: string | null;
+}
+
+export interface SectionData {
+  id: string;
+  title: string;
+  description?: string;
+  questionIds: string[];
+  order?: number;
 }
 
 export interface IFormBuilderContext {
@@ -72,4 +81,11 @@ export interface IFormBuilderContext {
   isAiModalOpen: boolean;
   setIsAiModalOpen: (isOpen: boolean) => void;
   handleAIFormGenerated: (processedData: ProcessedFormData) => void;
+  sections: SectionData[];
+  addSection: (title?: string, description?: string) => SectionData;
+  updateSection: (id: string, updates: Partial<SectionData>) => void;
+  removeSection: (id: string) => void;
+  moveQuestionToSection: (questionId: string, sectionId?: string) => void;
+  getSectionForQuestion: (questionId: string) => string | null;
+  reorderSections: (newOrder: SectionData[]) => void;
 }

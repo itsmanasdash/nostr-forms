@@ -9,12 +9,14 @@ interface TimeFillerProps {
   defaultValue?: string;
   onChange: (answer: string, message?: string) => void;
   disabled?: boolean;
+  testId? : string;
 }
 
 export const TimeFiller: React.FC<TimeFillerProps> = ({
   defaultValue,
   onChange,
   disabled = false,
+  testId = "time-filler",
 }) => {
   const [value, setValue] = useState<dayjs.Dayjs | null>(
     defaultValue ? dayjs(defaultValue, "h:mm A") : null
@@ -39,6 +41,7 @@ export const TimeFiller: React.FC<TimeFillerProps> = ({
       onSelect={(val) => setValue(val)}
       allowClear={false}
       disabled={disabled}
+      data-testid={`${testId}:picker`}
     />
     </>
   );
