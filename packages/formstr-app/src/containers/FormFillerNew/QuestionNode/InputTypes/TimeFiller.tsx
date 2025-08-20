@@ -8,12 +8,14 @@ dayjs.extend(customParseFormat);
 interface TimeFillerProps {
   defaultValue?: string;
   onChange: (answer: string, message?: string) => void;
+  disabled?: boolean;
   testId? : string;
 }
 
 export const TimeFiller: React.FC<TimeFillerProps> = ({
   defaultValue,
   onChange,
+  disabled = false,
   testId = "time-filler",
 }) => {
   const [value, setValue] = useState<dayjs.Dayjs | null>(
@@ -21,10 +23,14 @@ export const TimeFiller: React.FC<TimeFillerProps> = ({
   );
 
   useEffect(() => {
+    setValue(defaultValue ? dayjs(defaultValue, "h:mm A") : null);
+  }, [defaultValue]);
+
+  useEffect(() => {
     if (value) {
       onChange(value.format("h:mm A"), "");
     }
-  }, [value]);
+  }, [value, onChange]);
 
   return (
     <>
@@ -34,6 +40,7 @@ export const TimeFiller: React.FC<TimeFillerProps> = ({
       value={value}
       onSelect={(val) => setValue(val)}
       allowClear={false}
+      disabled={disabled}
       data-testid={`${testId}:picker`}
     />
     </>
