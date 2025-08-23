@@ -82,7 +82,11 @@ export const FormDetails = ({
       onCancel={onClose}
       footer={null}
       closable={false}
-      width={600}
+      width="90%"
+      style={{ 
+        maxWidth: 600,
+        minWidth: 320, 
+      }}
     >
       <FormDetailsStyle className="form-details">
         <Card
@@ -92,6 +96,10 @@ export const FormDetails = ({
             { key: "embed", label: "Embed" },
           ]}
           onTabChange={(key) => setActiveTab(key as "share" | "embed")}
+          style={{
+            width: '100%',
+            minWidth: 0,
+          }}
         >
           {activeTab === "share" ? (
             <ShareTab formUrl={formUrl} responsesUrl={responsesUrl} />
