@@ -92,6 +92,10 @@ export const FormDetails = ({
             { key: "embed", label: "Embed" },
           ]}
           onTabChange={(key) => setActiveTab(key as "share" | "embed")}
+          style={{
+            width: '100%',
+            minWidth: 0,
+          }}
         >
           {activeTab === "share" ? (
             <ShareTab formUrl={formUrl} responsesUrl={responsesUrl} />
