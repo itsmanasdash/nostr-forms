@@ -82,11 +82,7 @@ export const FormDetails = ({
       onCancel={onClose}
       footer={null}
       closable={false}
-      width="90%"
-      style={{ 
-        maxWidth: 600,
-        minWidth: 320, 
-      }}
+      width={600}
     >
       <FormDetailsStyle className="form-details">
         <Card
