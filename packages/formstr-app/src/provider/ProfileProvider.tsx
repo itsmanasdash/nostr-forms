@@ -11,6 +11,8 @@ import { Modal } from "antd";
 import { Filter } from "nostr-tools";
 import { useApplicationContext } from "../hooks/useApplicationContext";
 import { getDefaultRelays } from "../nostr/common";
+import { signerManager } from "../signer";
+import LoginModal from "../components/LoginModal";
 
 interface ProfileProviderProps {
   children?: ReactNode;
@@ -33,9 +35,8 @@ export const ProfileContext = createContext<ProfileContextType | undefined>(
 
 export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
   const [pubkey, setPubkey] = useState<string | undefined>(undefined);
-  const [usingNip07, setUsingNip07] = useState(false);
   const [userRelays, setUserRelays] = useState<string[]>([]);
-
+  const [showLooginModal, setShowLoginModal] = useState<boolean>(false);
   const { poolRef } = useApplicationContext();
 
   const fetchUserRelays = async (pubkey: string) => {
@@ -53,6 +54,17 @@ export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
   };
 
   useEffect(() => {
+    signerManager.registerLoginModal(() => {
+      return new Promise<void>((resolve) => {
+        setShowLoginModal(true);
+      });
+    });
+    signerManager.onChange(async () => {
+      setPubkey(await (await signerManager.getSigner()).getPublicKey());
+    });
+  }, []);
+
+  useEffect(() => {
     const profile = getItem<IProfile>(LOCAL_STORAGE_KEYS.PROFILE);
     if (profile) {
       setPubkey(profile.pubkey);
@@ -65,14 +77,13 @@ export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
   const logout = () => {
     setItem(LOCAL_STORAGE_KEYS.PROFILE, null);
     setPubkey(undefined);
+    signerManager.logout();
   };
 
   const requestPubkey = async () => {
-    setUsingNip07(true);
-    let publicKey = await window.nostr.getPublicKey();
+    let publicKey = await (await signerManager.getSigner()).getPublicKey();
     setPubkey(publicKey);
     setItem(LOCAL_STORAGE_KEYS.PROFILE, { pubkey: publicKey });
-    setUsingNip07(false);
     return pubkey;
   };
 
@@ -81,7 +92,7 @@ export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
       value={{ pubkey, requestPubkey, logout, userRelays }}
     >
       {children}
-      <Modal
+      {/* <Modal
         open={usingNip07}
         footer={null}
         onCancel={() => setUsingNip07(false)}
@@ -95,7 +106,11 @@ export const ProfileProvider: FC<ProfileProviderProps> = ({ children }) => {
         >
           Awesome Nostr Recommendations
         </a>
-      </Modal>
+      </Modal> */}
+      <LoginModal
+        open={showLooginModal}
+        onClose={() => setShowLoginModal(false)}
+      />
     </ProfileContext.Provider>
   );
 };

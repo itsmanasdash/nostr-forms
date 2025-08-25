@@ -15,6 +15,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { naddrUrl } from "./utility";
 import { AddressPointer } from "nostr-tools/nip19";
 import { fetchFormTemplate } from "../nostr/fetchFormTemplate";
+import { signerManager } from "../signer";
 
 export const createFormSpecFromTemplate = (
   template: FormTemplate
@@ -34,6 +35,7 @@ export const fetchKeys = async (
   formId: string,
   userPub: string
 ) => {
+  const signer = await signerManager.getSigner();
   const pool = new SimplePool();
   const defaultRelays = getDefaultRelays();
   const aliasPubKey = bytesToHex(
@@ -50,12 +52,12 @@ export const fetchKeys = async (
   await Promise.allSettled(
     accessKeyEvents.map(async (keyEvent: Event) => {
       try {
-        const sealString = await window.nostr.nip44.decrypt(
+        const sealString = await signer.nip44Decrypt!(
           keyEvent.pubkey,
           keyEvent.content
         );
         const seal = JSON.parse(sealString) as Event;
-        const rumorString = await window.nostr.nip44.decrypt(
+        const rumorString = await signer.nip44Decrypt!(
           seal.pubkey,
           seal.content
         );
@@ -121,7 +123,7 @@ export const getFormSpec = async (
 
 export const getDecryptedForm = (formEvent: Event, viewKey: string) => {
   const conversationKey = nip44.v2.utils.getConversationKey(
-    viewKey,
+    hexToBytes(viewKey),
     formEvent.pubkey
   );
   const formSpecString = nip44.v2.decrypt(formEvent.content, conversationKey);

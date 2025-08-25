@@ -1,5 +1,4 @@
 import {
-  AbstractRelay,
   Event,
   finalizeEvent,
   generateSecretKey,
@@ -15,29 +14,17 @@ import { bytesToHex } from "@noble/hashes/utils";
 import { normalizeURL } from "nostr-tools/utils";
 import { Field, Response, Tag } from "./types";
 import { IFormSettings } from "../containers/CreateFormNew/components/FormSettings/types";
+import { signerManager } from "../signer";
+import { AbstractRelay } from "nostr-tools/abstract-relay";
 
 declare global {
-  // TODO: make this better
   interface Window {
     __FORMSTR__FORM_IDENTIFIER__: {
       naddr?: string;
       viewKey?: string;
       formContent?: string;
     };
-    nostr: {
-      getPublicKey: () => Promise<string>;
-      signEvent: <Event>(
-        event: Event,
-      ) => Promise<Event & { id: string; sig: string }>;
-      nip04: {
-        encrypt: (pubKey: string, message: string) => Promise<string>;
-        decrypt: (pubkey: string, message: string) => Promise<string>;
-      };
-      nip44: {
-        encrypt: (pubKey: string, message: string) => Promise<string>;
-        decrypt: (pubkey: string, mssage: string) => Promise<string>;
-      };
-    };
+    nostr: any;
   }
 }
 
@@ -81,25 +68,25 @@ function toHexNpub(npubOrHex: string): string {
 
 export async function getUserPublicKey(userSecretKey: Uint8Array | null) {
   let userPublicKey;
+  const signer = await signerManager.getSigner();
   if (userSecretKey) {
     userPublicKey = getPublicKey(userSecretKey);
   } else {
     checkWindowNostr();
-    userPublicKey = await window.nostr.getPublicKey();
+    userPublicKey = await signer.getPublicKey();
   }
   return userPublicKey;
 }
 
 export async function signEvent(
   baseEvent: UnsignedEvent,
-  userSecretKey: Uint8Array | null,
+  userSecretKey: Uint8Array | null
 ) {
   let nostrEvent;
   if (userSecretKey) {
     nostrEvent = finalizeEvent(baseEvent, userSecretKey);
   } else {
-    checkWindowNostr();
-    nostrEvent = await window.nostr.signEvent(baseEvent);
+    return (await signerManager.getSigner()).signEvent(baseEvent);
   }
   return nostrEvent;
 }
@@ -107,7 +94,7 @@ export async function signEvent(
 export const customPublish = (
   relays: string[],
   event: Event,
-  onAcceptedRelays?: (relay: string) => void,
+  onAcceptedRelays?: (relay: string) => void
 ): Promise<string>[] => {
   return relays.map(normalizeURL).map(async (url, i, arr) => {
     if (arr.indexOf(url) !== i) {
@@ -124,7 +111,7 @@ export const customPublish = (
           return reason;
         }),
         new Promise<string>((_, reject) =>
-          setTimeout(() => reject("timeout"), 5000),
+          setTimeout(() => reject("timeout"), 5000)
         ),
       ]);
     } finally {
@@ -163,11 +150,11 @@ const getDisplayAnswer = (answer: string | number | boolean, field: Field) => {
 
 export const sendNotification = async (
   form: Tag[],
-  response: Array<Response>,
+  response: Array<Response>
 ) => {
   const name = form.filter((f) => f[0] === "name")?.[0][1];
   const settings = JSON.parse(
-    form.filter((f) => f[0] === "settings")?.[0][1],
+    form.filter((f) => f[0] === "settings")?.[0][1]
   ) as IFormSettings;
   let message = 'New response for form: "' + name + '"';
   const questionMap = createQuestionMap(form);
@@ -187,7 +174,7 @@ export const sendNotification = async (
   const newPk = getPublicKey(newSk);
   const pool = new SimplePool();
   settings.notifyNpubs?.forEach(async (npub) => {
-    const hexNpub = toHexNpub(npub)
+    const hexNpub = toHexNpub(npub);
     const encryptedMessage = await nip04.encrypt(newSk, hexNpub, message);
     const baseKind4Event: Event = {
       kind: 4,
@@ -206,7 +193,7 @@ export const sendNotification = async (
 
 export const ensureRelay = async (
   url: string,
-  params?: { connectionTimeout?: number },
+  params?: { connectionTimeout?: number }
 ): Promise<AbstractRelay> => {
   url = normalizeURL(url);
   const relay = new Relay(url);
@@ -219,14 +206,15 @@ export const ensureRelay = async (
 const encryptResponse = async (
   message: string,
   receiverPublicKey: string,
-  senderPrivateKey: Uint8Array | null,
+  senderPrivateKey: Uint8Array | null
 ) => {
   if (!senderPrivateKey) {
-    return await window.nostr.nip44.encrypt(receiverPublicKey, message);
+    const signer = await signerManager.getSigner();
+    return await signer.nip44Encrypt!(receiverPublicKey, message);
   }
   const conversationKey = nip44.v2.utils.getConversationKey(
-    bytesToHex(senderPrivateKey),
-    receiverPublicKey,
+    senderPrivateKey,
+    receiverPublicKey
   );
   return nip44.v2.encrypt(message, conversationKey);
 };
@@ -238,7 +226,7 @@ export const sendResponses = async (
   responderSecretKey: Uint8Array | null = null,
   encryptResponses = true,
   relays: string[] = [],
-  onAcceptedRelays?: (url: string) => void,
+  onAcceptedRelays?: (url: string) => void
 ) => {
   if (!formId) {
     alert("FORM ID NOT FOUND");
@@ -254,7 +242,7 @@ export const sendResponses = async (
     content = await encryptResponse(
       JSON.stringify(responses),
       formAuthorPub,
-      responderSecretKey,
+      responderSecretKey
     );
   }
   const baseEvent: UnsignedEvent = {
@@ -271,7 +259,7 @@ export const sendResponses = async (
     relayList = defaultRelays;
   }
   const messages = await Promise.allSettled(
-    customPublish(relayList, fullEvent, onAcceptedRelays),
+    customPublish(relayList, fullEvent!, onAcceptedRelays)
   );
   console.log("Message from relays", messages);
 };
