@@ -68,10 +68,10 @@ function toHexNpub(npubOrHex: string): string {
 
 export async function getUserPublicKey(userSecretKey: Uint8Array | null) {
   let userPublicKey;
-  const signer = await signerManager.getSigner();
   if (userSecretKey) {
     userPublicKey = getPublicKey(userSecretKey);
   } else {
+    const signer = await signerManager.getSigner();
     checkWindowNostr();
     userPublicKey = await signer.getPublicKey();
   }
@@ -252,7 +252,6 @@ export const sendResponses = async (
     content: content,
     created_at: Math.floor(Date.now() / 1000),
   };
-
   const fullEvent = await signEvent(baseEvent, responderSecretKey);
   let relayList = relays;
   if (relayList.length === 0) {

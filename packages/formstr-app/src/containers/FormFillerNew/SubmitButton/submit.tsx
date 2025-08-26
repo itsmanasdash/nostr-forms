@@ -51,6 +51,7 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
     if (anonymous) {
       anonUser = generateSecretKey();
     }
+
     sendResponses(
       pubKey,
       formId,
