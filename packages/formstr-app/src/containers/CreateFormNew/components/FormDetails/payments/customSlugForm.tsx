@@ -126,7 +126,6 @@ export const CustomSlugForm = ({
           headers: { Authorization: authHeader },
         }
       );
-      console.log("APIR RESULT", res);
       const { invoice, paymentHash } = res.data;
       const { amount } = res.data;
       setAmount(amount);
@@ -258,14 +257,22 @@ export const CustomSlugForm = ({
                       <Alert
                         message={
                           <>
-                            <Text style={{fontSize: 10}}>
-                            Your current current form visitibilty is set to "Anyone with the link can access your form", if you proceed with customized links with this setting Formstr Inc will also be able to access this form.
-                            To change it, so that only fixed participants can access the form, please click 
+                            <Text style={{ fontSize: 10 }}>
+                              Your current current form visitibilty is set to
+                              "Anyone with the link can access your form", if
+                              you proceed with customized links with this
+                              setting Formstr Inc will also be able to access
+                              this form. To change it, so that only fixed
+                              participants can access the form, please click
                             </Text>
                             {onEditClick && (
                               <Button
                                 type="link"
-                                style={{ marginLeft: 2, padding: 0, fontSize: 10 }}
+                                style={{
+                                  marginLeft: 2,
+                                  padding: 0,
+                                  fontSize: 10,
+                                }}
                                 onClick={onEditClick}
                               >
                                 here
