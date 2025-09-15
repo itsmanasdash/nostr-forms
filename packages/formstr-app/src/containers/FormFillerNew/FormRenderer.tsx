@@ -230,6 +230,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             handleInput={onInput}
             disabled={disabled}
             values={initialValues}
+            formSettings={settings}
           />
         </>
       )}
@@ -264,13 +265,11 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     </div>
   );
 
-  console.log("GOT SETTINGSD AS", settings.backgroundImageUrl);
-
   return (
-    <FillerStyle $bgImage={settings.backgroundImageUrl}>
+    <FillerStyle $bgImage={settings.backgroundImageUrl} $titleImageUrl={settings.titleImageUrl}>
       <div className="filler-container">
         <div className="form-filler">
-          {!hideTitleImage && settings?.titleImageUrl && (
+          {!hideTitleImage && (
             <FormBanner imageUrl={settings.titleImageUrl} formTitle={name} />
           )}
           {!hideDescription && settings?.description && (

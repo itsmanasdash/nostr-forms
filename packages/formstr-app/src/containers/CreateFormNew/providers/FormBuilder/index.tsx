@@ -87,6 +87,7 @@ const InitialFormSettings: IFormSettings = {
   encryptForm: true,
   viewKeyInUrl: true,
   sections: [],
+  cardTransparency: 1,
 };
 
 export default function FormBuilderProvider({
@@ -496,7 +497,8 @@ export default function FormBuilderProvider({
   };
 
   const initializeForm = (form: FormInitData) => {
-    setFormName(form.spec.filter((f) => f[0] === "name")?.[0]?.[1] || "");
+    let formInitName = form.spec.filter((f) => f[0] === "name")?.[0]?.[1] || "";
+    setFormName(formInitName);
     let settingsFromFile = JSON.parse(
       form.spec.filter((f) => f[0] === "settings")?.[0]?.[1] || "{}"
     );

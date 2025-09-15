@@ -5,26 +5,48 @@ import { EditOutlined, EyeOutlined } from "@ant-design/icons";
 import SafeMarkdown from ".";
 
 type Props = {
-  value: string;
+  value?: string;
   onChange: (val: string) => void;
   placeholder?: string;
   minRows?: number;
   maxRows?: number;
+  fontSize?: number;
+  className?: string;
+  disabled?: boolean;
 };
 
 const SPAN_WRAPPER_REGEX =
   /^<span style="color:\s*[^"]+">\s*([\s\S]*?)\s*<\/span>$/i;
 
 export const ColorfulMarkdownTextarea: React.FC<Props> = ({
-  value = "",
+  value,
   onChange,
   placeholder,
-  minRows = 3,
-  maxRows = 12,
+  fontSize,
+  className,
+  disabled,
 }) => {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [color, setColor] = React.useState("#000000");
-  const [preview, setPreview] = React.useState(false);
+  const [preview, setPreview] = React.useState(true);
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        wrapperRef.current?.contains &&
+        !wrapperRef.current.contains(event.target as Node)
+      ) {
+        setPreview(true); // switch to preview mode
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   React.useEffect(() => {
     const m = value?.match(/^<span style="color:\s*([^";]+)[";]?\s*">/i);
@@ -33,8 +55,8 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
 
   const applyColor = (hex: string) => {
     let updated: string;
-    if (SPAN_WRAPPER_REGEX.test(value)) {
-      updated = value.replace(
+    if (SPAN_WRAPPER_REGEX.test(value || "")) {
+      updated = value!.replace(
         /^<span style="color:\s*[^"]+">/,
         `<span style="color:${hex}">`
       );
@@ -46,33 +68,71 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   };
 
   const clearColor = () => {
-    if (SPAN_WRAPPER_REGEX.test(value)) {
-      const plain = value.replace(SPAN_WRAPPER_REGEX, "$1");
+    if (SPAN_WRAPPER_REGEX.test(value || "  ")) {
+      const plain = value!.replace(SPAN_WRAPPER_REGEX, "$1");
       onChange(plain);
     }
     setPickerOpen(false);
   };
 
-  const handleColorChange = (c: ColorResult) => applyColor(c.hex);
-  console.log("preview is? ", preview);
+  const handleColorChange = (c: ColorResult) => {
+    applyColor(c.hex);
+    setPreview(true);
+  };
   return (
-    <div style={{ display: "flex", flexDirection: "column" }}>
+    <div
+      ref={wrapperRef}
+      className={className}
+      style={{ display: "flex", flexDirection: "column" }}
+    >
       {/* Content area */}
       {preview ? (
         <div
           style={{
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
-            fontSize: 14,
+            fontSize: fontSize || 14,
+            padding: 0,
+            margin: 0,
+            cursor: "text",
           }}
+          onClick={() => setPreview(false)}
         >
-          <SafeMarkdown>{value}</SafeMarkdown>
+          <SafeMarkdown
+            children={value}
+            components={{
+              p: ({ node, ...props }) => <p style={{ margin: 0 }} {...props} />,
+              h1: ({ node, ...props }) => (
+                <h1 style={{ margin: 0 }} {...props} />
+              ),
+              h2: ({ node, ...props }) => (
+                <h2 style={{ margin: 0 }} {...props} />
+              ),
+              h3: ({ node, ...props }) => (
+                <h3 style={{ margin: 0 }} {...props} />
+              ),
+              ul: ({ node, ...props }) => (
+                <ul style={{ margin: 0, paddingLeft: 16 }} {...props} />
+              ),
+              ol: ({ node, ...props }) => (
+                <ol style={{ margin: 0, paddingLeft: 16 }} {...props} />
+              ),
+              li: ({ node, ...props }) => (
+                <li style={{ margin: 0 }} {...props} />
+              ),
+              span: ({ node, ...props }) => (
+                <span style={{ display: "inline-block" }} {...props} />
+              ),
+            }}
+          />
         </div>
       ) : (
         <Input.TextArea
           value={value}
+          style={{ color: color, fontSize: fontSize }}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
+          disabled={disabled}
           autoSize
         />
       )}
