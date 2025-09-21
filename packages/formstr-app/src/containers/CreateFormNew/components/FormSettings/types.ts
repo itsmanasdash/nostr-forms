@@ -12,5 +12,7 @@ export interface IFormSettings {
   formId?: string;
   sections?: SectionData[];
   backgroundImageUrl?: string;
-  cardTransparency?: number
+  cardTransparency?: number;
+  nrpcPubkey?: string;
+  nrpcMethod?: string;
 }
