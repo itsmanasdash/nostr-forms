@@ -15,4 +15,5 @@ export interface IFormSettings {
   cardTransparency?: number;
   nrpcPubkey?: string;
   nrpcMethod?: string;
+  requireWebhookPass?: boolean;
 }
