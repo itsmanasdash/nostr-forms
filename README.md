@@ -6,7 +6,7 @@ This repository holds the forms implementation on the [nostr-protocol](https://g
 
 1. Node
 2. Yarn
-3. [NIP-07 Signer Extension](https://github.com/nostr-protocol/nips/blob/master/07.md)
+3. [NIP-07 Signer Extension](https://github.com/nostr-protocol/nips/blob/master/07.md) or [NIP-46 Remote Signer](https://github.com/nostr-protocol/nips/blob/master/46.md)
 
 ### Setup Instructions
 
