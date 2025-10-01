@@ -53,16 +53,16 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
     if (m && m[1]) setColor(m[1]);
   }, [value]);
 
-  const applyColor = (hex: string) => {
-    let updated: string;
+  const getPlainText = () => {
     if (SPAN_WRAPPER_REGEX.test(value || "")) {
-      updated = value!.replace(
-        /^<span style="color:\s*[^"]+">/,
-        `<span style="color:${hex}">`
-      );
-    } else {
-      updated = `<span style="color:${hex}">${value}</span>`;
+      return value!.replace(SPAN_WRAPPER_REGEX, "$1");
     }
+    return value || "";
+  };
+
+  const applyColor = (hex: string) => {
+    const plainText = getPlainText();
+    const updated = `<span style="color:${hex}">${plainText}</span>`;
     onChange(updated);
     setColor(hex);
   };
@@ -79,6 +79,7 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
     applyColor(c.hex);
     setPreview(true);
   };
+  
   return (
     <div
       ref={wrapperRef}
@@ -128,9 +129,13 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
         </div>
       ) : (
         <Input.TextArea
-          value={value}
+          value={getPlainText()}
           style={{ color: color, fontSize: fontSize }}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const plainText = e.target.value;
+            const updated = `<span style="color:${color}">${plainText}</span>`;
+            onChange(updated);
+          }}
           placeholder={placeholder}
           disabled={disabled}
           autoSize
@@ -193,8 +198,8 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
             style={{ color: color }}
             color={color}
             onClick={(e) => {
-              e.stopPropagation(); // ✅ prevents Popover or parent from re-firing
-              setPreview(true); // ✅ safe toggle
+              e.stopPropagation();
+              setPreview(true);
             }}
           />
         )}
