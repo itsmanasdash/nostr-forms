@@ -18,7 +18,7 @@ Formstr itself is only a UI, we store your forms on the relays of your choosing.
 
 You can explore Formstr and even create forms without logging in. But to save, manage, or share your forms securely across devices, you’ll need to log in.
 
-To log into Formstr, you’ll need a NIP-07 browser extension like Alby or nos2x installed or you can connect via remote signer apps like Amber. These programs manage your Nostr identity, and hold your private keys securely for you.
+To log into Formstr, you’ll need a NIP-07 browser extension like Alby or nos2x installed or you can connect via remote signer apps (NIP-46) like Amber. These programs manage your Nostr identity, and hold your private keys securely for you.
 
 [Here's a list of nostr extensions](https://github.com/aljazceru/awesome-nostr?tab=readme-ov-file#nip-07-browser-extensions)
 
