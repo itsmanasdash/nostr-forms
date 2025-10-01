@@ -16,7 +16,7 @@ type Props = {
 };
 
 const SPAN_WRAPPER_REGEX =
-  /^<span style="color:\s*[^"]+">\s*([\s\S]*?)\s*<\/span>$/i;
+  /^<span style="color:\s*[^"]+">([\s\S]*)<\/span>$/i;
 
 export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   value,
@@ -79,7 +79,7 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
     applyColor(c.hex);
     setPreview(true);
   };
-  
+
   return (
     <div
       ref={wrapperRef}
