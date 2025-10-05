@@ -58,14 +58,18 @@ export const StyledCard = styled(Card)`
   transition: all 0.2s;
   border-radius: 8px 8px 8px 8px !important;
   margin-top: -6px;
-  z-index: 2;
+  z-index: 0;
+  border: 0.5px dashed #000000 !important;
+  background-color: rgba(255, 255, 255, 0.4) !important;
   
   .ant-card-head {
     border-bottom: none;
+    background-color: transparent;
   }
   
   .ant-card-body {
     padding-top: 16px;
+    background-color: transparent;
   }
 `;
 
