@@ -34,7 +34,7 @@ function CreateForm() {
         form={null}
         footer={null}
         onInput={() => {}}
-        formstrbranding={formSettings.formstrbranding}
+        formstrBranding={formSettings.formstrBranding}
       />
     );
   }

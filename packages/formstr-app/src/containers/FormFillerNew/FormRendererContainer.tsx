@@ -163,7 +163,7 @@ export const FormRendererContainer: React.FC<FormRendererContainerProps> = ({
       footer={footer}
       hideTitleImage={hideTitleImage}
       hideDescription={hideDescription}
-      formstrbranding={settings?.formstrbranding}
+      formstrBranding={settings?.formstrBranding}
     />
   );
 };

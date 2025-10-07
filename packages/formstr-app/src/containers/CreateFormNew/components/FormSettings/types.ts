@@ -14,5 +14,5 @@ export interface IFormSettings {
   backgroundImageUrl?: string;
   cardTransparency?: number
   thankYouScreenImageUrl? : string;
-  formstrbranding?: boolean;
+  formstrBranding?: boolean;
 }

@@ -18,7 +18,7 @@ interface ResponseDetailModalProps {
   formSpec: Tag[];
   processedInputs: Tag[];
   responseMetadataEvent: Event | null; 
-  formstrbranding?: boolean;
+  formstrBranding?: boolean;
 }
 export const ResponseDetailModal: React.FC<ResponseDetailModalProps> = ({
   isVisible,
@@ -26,7 +26,7 @@ export const ResponseDetailModal: React.FC<ResponseDetailModalProps> = ({
   formSpec,
   processedInputs,
   responseMetadataEvent,
-  formstrbranding,
+  formstrBranding,
 }) => {
   const [metaData, setMetaData] = useState<{ author?: string, timestamp?: string }>({});
   const [form] = Form.useForm();
@@ -90,7 +90,7 @@ export const ResponseDetailModal: React.FC<ResponseDetailModalProps> = ({
           onInput={() => {}}
           disabled={true}
           initialValues={buildInitialValues(processedInputs)}
-          formstrbranding={formstrbranding}
+          formstrBranding={formstrBranding}
         />
       ) : (
         <Typography.Text>Waiting for form details or response data...</Typography.Text>

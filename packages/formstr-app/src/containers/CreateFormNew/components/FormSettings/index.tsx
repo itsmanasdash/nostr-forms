@@ -128,9 +128,9 @@ function FormSettings() {
             <div className="property-setting">
               <Text className="property-text">Add Formstr branding</Text>
               <Switch
-                checked={formSettings.formstrbranding}
+                checked={formSettings.formstrBranding}
                 onChange={(checked) =>
-                  updateFormSetting({ formstrbranding: checked })
+                  updateFormSetting({ formstrBranding: checked })
                 }
               />
             </div>
