@@ -2,6 +2,8 @@ import {
   Button,
   Collapse,
   Divider,
+  Input,
+  Select,
   Slider,
   Switch,
   Tooltip,
@@ -20,10 +22,12 @@ import { ThankYouScreenImageSetting } from "./ThankYouImage";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
+import Automations from "./Automations";
 
 function FormSettings() {
   const {
     formSettings,
+    relayList,
     updateFormSetting,
     toggleRelayManagerModal,
     isRelayManagerModalOpen,
@@ -104,8 +108,8 @@ function FormSettings() {
           />
           <Divider className="divider" />
           <div className="property-setting">
-            <div style={{display: "flex", flexDirection: "column"}}>
-            <Text>Card Transparency</Text>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <Text>Card Transparency</Text>
               <Slider
                 min={0.5}
                 max={1}
@@ -145,6 +149,9 @@ function FormSettings() {
           >
             Manage Relays
           </Button>
+        </Panel>
+        <Panel header="Automations" key="nrpc-webhook">
+          <Automations />
         </Panel>
       </Collapse>
 

@@ -40,7 +40,10 @@ function EditForm() {
       kinds: [30168],
     };
     let pool = new SimplePool();
-    let formEvent = await pool.get(relays || getDefaultRelays(), filter);
+    let formEvent = await pool.get(
+      Array.from(new Set([...(relays || []), ...getDefaultRelays()]) || []),
+      filter
+    );
     if (!formEvent) {
       setError("Form Not Found :(");
       return;
@@ -122,7 +125,6 @@ function EditForm() {
         />
       );
     }
-
   return <></>;
 }
 
