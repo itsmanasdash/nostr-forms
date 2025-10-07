@@ -88,6 +88,7 @@ const InitialFormSettings: IFormSettings = {
   viewKeyInUrl: true,
   sections: [],
   cardTransparency: 1,
+  formstrbranding: true,
 };
 
 export default function FormBuilderProvider({

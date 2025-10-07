@@ -13,4 +13,6 @@ export interface IFormSettings {
   sections?: SectionData[];
   backgroundImageUrl?: string;
   cardTransparency?: number
+  thankYouScreenImageUrl? : string;
+  formstrbranding?: boolean;
 }

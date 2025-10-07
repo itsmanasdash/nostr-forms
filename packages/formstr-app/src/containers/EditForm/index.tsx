@@ -24,7 +24,7 @@ function EditForm() {
     relays = relaysArray;
   }
   const formSecret = window.location.hash.replace(/^#/, "");
-  const { initializeForm, saveDraft, selectedTab, getFormSpec } =
+  const { initializeForm, saveDraft, selectedTab, getFormSpec , formSettings} =
     useFormBuilderContext();
   const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,6 +118,7 @@ function EditForm() {
           form={null}
           footer={null}
           onInput={() => {}}
+          formstrbranding={formSettings.formstrbranding}
         />
       );
     }

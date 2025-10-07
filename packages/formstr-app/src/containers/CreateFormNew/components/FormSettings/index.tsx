@@ -16,6 +16,7 @@ import { Notifications } from "./Notifications";
 import { isMobile } from "../../../../utils/utility";
 import RelayManagerModal from "./RelayManagerModal";
 import { BackgroundImageSetting } from "./BackgroundImage";
+import { ThankYouScreenImageSetting } from "./ThankYouImage";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -95,6 +96,13 @@ function FormSettings() {
               updateFormSetting({ backgroundImageUrl: url });
             }}
           />
+          <ThankYouScreenImageSetting
+            value={formSettings.thankYouScreenImageUrl}
+            onChange={(url: string) => {
+              updateFormSetting({ thankYouScreenImageUrl: url });
+            }}
+          />
+          <Divider className="divider" />
           <div className="property-setting">
             <div style={{display: "flex", flexDirection: "column"}}>
             <Text>Card Transparency</Text>
@@ -113,6 +121,20 @@ function FormSettings() {
               </Text>
             </div>
           </div>
+          <Tooltip
+            title="This toggle will add Formstr branding to the bottom of your form."
+            trigger={isMobile() ? "click" : "hover"}
+          >
+            <div className="property-setting">
+              <Text className="property-text">Add Formstr branding</Text>
+              <Switch
+                checked={formSettings.formstrbranding}
+                onChange={(checked) =>
+                  updateFormSetting({ formstrbranding: checked })
+                }
+              />
+            </div>
+          </Tooltip>
         </Panel>
 
         <Panel header="Relay Configuration" key="relays">

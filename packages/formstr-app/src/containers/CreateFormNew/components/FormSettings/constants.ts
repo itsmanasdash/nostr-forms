@@ -11,3 +11,8 @@ export const sampleBackgrounds = [
   "https://images.pexels.com/photos/414171/pexels-photo-414171.jpeg",
   "https://images.pexels.com/photos/34950/pexels-photo.jpg",
 ];
+
+
+export const sampleThankYouScreens = [
+  "https://image.nostr.build/ab238249194e61952d5d199f9595c88da1ba6b1e3d981232e9dc4821a19908fe.gif"
+]

@@ -24,6 +24,7 @@ interface FormRendererProps {
   hideDescription?: boolean;
   disabled?: boolean;
   initialValues?: Record<string, any>;
+  formstrbranding?: boolean;
 }
 
 // Content item can be either a section or individual questions
@@ -45,6 +46,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   hideDescription,
   disabled = false,
   initialValues,
+  formstrbranding
 }) => {
   const name = formTemplate.find((tag) => tag[0] === "name")?.[1] || "";
   const settings = JSON.parse(
@@ -285,7 +287,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           </Form>
         </div>
 
-        <div className="branding-container">
+        {formstrbranding && (
+          <div className="branding-container">
           <Link to="/">
             <CreatedUsingFormstr />
           </Link>
@@ -300,6 +303,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
             </a>
           )}
         </div>
+        )}
       </div>
     </FillerStyle>
   );
