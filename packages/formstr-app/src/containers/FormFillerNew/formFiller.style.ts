@@ -36,8 +36,7 @@ export default styled.div<{
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
-    align-items: stretch;
-
+    
     .branding-container {
       margin-top: auto;
     }
