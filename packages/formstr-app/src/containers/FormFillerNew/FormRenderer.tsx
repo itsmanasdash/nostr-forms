@@ -47,7 +47,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   hideDescription,
   disabled = false,
   initialValues,
-  formstrBranding
+  formstrBranding,
   isPreview = false,
 }) => {
   const name = formTemplate.find((tag) => tag[0] === "name")?.[1] || "";
