@@ -25,6 +25,7 @@ interface FormRendererProps {
   disabled?: boolean;
   initialValues?: Record<string, any>;
   formstrBranding?: boolean;
+  isPreview?: boolean;
 }
 
 // Content item can be either a section or individual questions
@@ -47,6 +48,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   disabled = false,
   initialValues,
   formstrBranding
+  isPreview = false,
 }) => {
   const name = formTemplate.find((tag) => tag[0] === "name")?.[1] || "";
   const settings = JSON.parse(
@@ -128,8 +130,12 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       contentItems.length) *
     100;
 
-  // Validate current step
+  // Validate current step - skip validation in preview mode
   const validateCurrentStep = async (): Promise<boolean> => {
+    if (isPreview) {
+      return true;
+    }
+    
     try {
       const fieldNames = currentItem?.fields.map((field) => field[1]) || [];
       await form.validateFields(fieldNames);
@@ -157,7 +163,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   const handleStepClick = async (stepIndex: number) => {
     if (stepIndex < currentStep || completedSteps.has(stepIndex)) {
       setCurrentStep(stepIndex);
-    } else if (stepIndex === stepIndex + 1) {
+    } else if (stepIndex === currentStep + 1) {
       await handleNext();
     }
   };
