@@ -16,7 +16,23 @@ type Props = {
 };
 
 const SPAN_WRAPPER_REGEX =
-  /^<span style="color:\s*[^"]+">\s*([\s\S]*?)\s*<\/span>$/i;
+  /^<span style="color:\s*([^"]+)">\s*([\s\S]*?)\s*<\/span>$/i;
+
+const escapeHtml = (str: string) =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const unescapeHtml = (str: string) =>
+  str
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
 
 export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   value,
@@ -30,6 +46,7 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   const [color, setColor] = React.useState("#000000");
   const [preview, setPreview] = React.useState(true);
   const wrapperRef = React.useRef<HTMLDivElement>(null);
+  const [editableText, setEditableText] = React.useState<string>("");
 
   React.useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -49,36 +66,38 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   }, []);
 
   React.useEffect(() => {
-    const m = value?.match(/^<span style="color:\s*([^";]+)[";]?\s*">/i);
-    if (m && m[1]) setColor(m[1]);
+    if (!value) {
+      setEditableText("");
+      return;
+    }
+    const match = value.match(SPAN_WRAPPER_REGEX);
+    if (match) {
+      const [, matchedColor, inner] = match;
+      if (matchedColor) setColor(matchedColor.trim());
+      setEditableText(unescapeHtml(inner ?? ""));
+    } else {
+      setEditableText(unescapeHtml(value));
+    }
   }, [value]);
 
-  const applyColor = (hex: string) => {
-    let updated: string;
-    if (SPAN_WRAPPER_REGEX.test(value || "")) {
-      updated = value!.replace(
-        /^<span style="color:\s*[^"]+">/,
-        `<span style="color:${hex}">`
-      );
-    } else {
-      updated = `<span style="color:${hex}">${value}</span>`;
-    }
-    onChange(updated);
-    setColor(hex);
+  const handleColorChange = (c: ColorResult) => {
+    setColor(c.hex);
+    setPreview(true);
+    setPickerOpen(false);
+    onChange(`<span style="color:${c.hex}">${escapeHtml(editableText)}</span>`);
   };
 
   const clearColor = () => {
-    if (SPAN_WRAPPER_REGEX.test(value || "  ")) {
-      const plain = value!.replace(SPAN_WRAPPER_REGEX, "$1");
-      onChange(plain);
-    }
+    setColor("#000000");
     setPickerOpen(false);
+    onChange(`<span style="color:#000000">${escapeHtml(editableText)}</span>`);
   };
 
-  const handleColorChange = (c: ColorResult) => {
-    applyColor(c.hex);
-    setPreview(true);
-  };
+  // Create display value by wrapping user text with color span
+  const displayValue = React.useMemo(() => {
+    return `<span style="color:${color}">${escapeHtml(editableText)}</span>`;
+  }, [editableText, color]);
+
   return (
     <div
       ref={wrapperRef}
@@ -99,7 +118,7 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
           onClick={() => setPreview(false)}
         >
           <SafeMarkdown
-            children={value}
+            children={displayValue}
             components={{
               p: ({ node, ...props }) => <p style={{ margin: 0 }} {...props} />,
               h1: ({ node, ...props }) => (
@@ -128,9 +147,13 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
         </div>
       ) : (
         <Input.TextArea
-          value={value}
+          value={editableText}
           style={{ color: color, fontSize: fontSize }}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => {
+            const newText = e.target.value;
+            setEditableText(newText);
+            onChange(`<span style="color:${color}">${escapeHtml(newText)}</span>`);
+          }}
           placeholder={placeholder}
           disabled={disabled}
           autoSize
