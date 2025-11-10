@@ -1,8 +1,6 @@
 import React from "react";
 import { Input, Popover, Button } from "antd";
 import { SketchPicker, ColorResult } from "react-color";
-import { EditOutlined, EyeOutlined } from "@ant-design/icons";
-import SafeMarkdown from ".";
 
 type Props = {
   value?: string;
@@ -44,26 +42,7 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
 }) => {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [color, setColor] = React.useState("#000000");
-  const [preview, setPreview] = React.useState(true);
-  const wrapperRef = React.useRef<HTMLDivElement>(null);
   const [editableText, setEditableText] = React.useState<string>("");
-
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        wrapperRef.current?.contains &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
-        setPreview(true); // switch to preview mode
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   React.useEffect(() => {
     if (!value) {
@@ -82,7 +61,6 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
 
   const handleColorChange = (c: ColorResult) => {
     setColor(c.hex);
-    setPreview(true);
     setPickerOpen(false);
     onChange(`<span style="color:${c.hex}">${escapeHtml(editableText)}</span>`);
   };
@@ -93,72 +71,24 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
     onChange(`<span style="color:#000000">${escapeHtml(editableText)}</span>`);
   };
 
-  // Create display value by wrapping user text with color span
-  const displayValue = React.useMemo(() => {
-    return `<span style="color:${color}">${escapeHtml(editableText)}</span>`;
-  }, [editableText, color]);
-
   return (
     <div
-      ref={wrapperRef}
       className={className}
       style={{ display: "flex", flexDirection: "column" }}
     >
-      {/* Content area */}
-      {preview ? (
-        <div
-          style={{
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            fontSize: fontSize || 14,
-            padding: 0,
-            margin: 0,
-            cursor: "text",
-          }}
-          onClick={() => setPreview(false)}
-        >
-          <SafeMarkdown
-            children={displayValue}
-            components={{
-              p: ({ node, ...props }) => <p style={{ margin: 0 }} {...props} />,
-              h1: ({ node, ...props }) => (
-                <h1 style={{ margin: 0 }} {...props} />
-              ),
-              h2: ({ node, ...props }) => (
-                <h2 style={{ margin: 0 }} {...props} />
-              ),
-              h3: ({ node, ...props }) => (
-                <h3 style={{ margin: 0 }} {...props} />
-              ),
-              ul: ({ node, ...props }) => (
-                <ul style={{ margin: 0, paddingLeft: 16 }} {...props} />
-              ),
-              ol: ({ node, ...props }) => (
-                <ol style={{ margin: 0, paddingLeft: 16 }} {...props} />
-              ),
-              li: ({ node, ...props }) => (
-                <li style={{ margin: 0 }} {...props} />
-              ),
-              span: ({ node, ...props }) => (
-                <span style={{ display: "inline-block" }} {...props} />
-              ),
-            }}
-          />
-        </div>
-      ) : (
-        <Input.TextArea
-          value={editableText}
-          style={{ color: color, fontSize: fontSize }}
-          onChange={(e) => {
-            const newText = e.target.value;
-            setEditableText(newText);
-            onChange(`<span style="color:${color}">${escapeHtml(newText)}</span>`);
-          }}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoSize
-        />
-      )}
+      {/* Text area */}
+      <Input.TextArea
+        value={editableText}
+        style={{ color: color, fontSize: fontSize }}
+        onChange={(e) => {
+          const newText = e.target.value;
+          setEditableText(newText);
+          onChange(`<span style="color:${color}">${escapeHtml(newText)}</span>`);
+        }}
+        placeholder={placeholder}
+        disabled={disabled}
+        autoSize
+      />
 
       {/* Controls row */}
       <div
@@ -200,27 +130,6 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
             }}
           />
         </Popover>
-
-        {/* Preview toggle button */}
-        {preview ? (
-          <EditOutlined
-            style={{ color: color }}
-            color={color}
-            onClick={(e) => {
-              e.stopPropagation(); // ✅ prevents Popover or parent from re-firing
-              setPreview(false); // ✅ safe toggle
-            }}
-          />
-        ) : (
-          <EyeOutlined
-            style={{ color: color }}
-            color={color}
-            onClick={(e) => {
-              e.stopPropagation(); // ✅ prevents Popover or parent from re-firing
-              setPreview(true); // ✅ safe toggle
-            }}
-          />
-        )}
       </div>
     </div>
   );

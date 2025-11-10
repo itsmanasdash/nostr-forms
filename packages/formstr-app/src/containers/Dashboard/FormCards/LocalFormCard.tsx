@@ -5,6 +5,7 @@ import DeleteFormTrigger from "./DeleteForm";
 import { makeFormNAddr, naddrUrl } from "../../../utils/utility";
 import { editPath, responsePath } from "../../../utils/formUtils";
 import { EditOutlined, MoreOutlined } from "@ant-design/icons";
+import SafeMarkdown from "../../../components/SafeMarkdown";
 
 interface LocalFormCardProps {
   form: ILocalForm;
@@ -54,7 +55,7 @@ export const LocalFormCard: React.FC<LocalFormCardProps> = ({
 
   return (
     <Card
-      title={form.name}
+      title={<SafeMarkdown components={{ p: "span" }}>{form.name}</SafeMarkdown>}
       className="form-card"
       extra={
         <div>

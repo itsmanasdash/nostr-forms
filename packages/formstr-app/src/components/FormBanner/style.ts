@@ -15,7 +15,7 @@ export default styled.div<{ $titleImageUrl?: string }>`
   }}
 
   .title-text {
-    color: white;
+    color: black;
     font-size: 24px;
     font-weight: 500;
     max-width: 95%;
