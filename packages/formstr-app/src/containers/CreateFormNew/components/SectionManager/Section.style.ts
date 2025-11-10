@@ -59,7 +59,7 @@ export const StyledCard = styled(Card)`
   border-radius: 8px 8px 8px 8px !important;
   margin-top: -6px;
   z-index: 0;
-  border: 0.5px dashed #000000 !important;
+  border: 1.5px dashed #000000 !important;
   background-color: rgba(255, 255, 255, 0.4) !important;
   
   .ant-card-head {

@@ -167,7 +167,7 @@ export const QuestionsList = () => {
             style={{
               marginBottom: 24,
               padding: 16,
-              border: "0.5px dashed #000000",
+              border: "1.5px dashed #000000",
               borderRadius: 8,
               backgroundColor: "rgba(255, 255, 255, 0.4)"
             }}
