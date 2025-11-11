@@ -53,15 +53,22 @@ export const SectionWrapper = styled.div`
   }
 `;
 
-export const StyledCard = styled(Card)`
+export const CardContainer = styled.div`
   position: relative;
   transition: all 0.2s;
-  border-radius: 8px 8px 8px 8px !important;
+  border-radius: 8px 8px 8px 8px;
   margin-top: -6px;
   z-index: 0;
-  border: 1.5px dashed #000000 !important;
-  background-color: rgba(255, 255, 255, 0.4) !important;
+  background-color: rgba(255, 255, 255, 0.4);
   
+  .ant-card {
+    border: none;
+    background-color: transparent;
+    box-shadow: none;
+  }
+`;
+
+export const StyledCard = styled(Card)`
   .ant-card-head {
     border-bottom: none;
     background-color: transparent;
