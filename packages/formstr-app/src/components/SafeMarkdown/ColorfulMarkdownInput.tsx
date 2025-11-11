@@ -1,8 +1,6 @@
 import React from "react";
 import { Input, Popover, Button } from "antd";
 import { SketchPicker, ColorResult } from "react-color";
-import { EditOutlined, EyeOutlined } from "@ant-design/icons";
-import SafeMarkdown from ".";
 
 type Props = {
   value?: string;
@@ -16,7 +14,23 @@ type Props = {
 };
 
 const SPAN_WRAPPER_REGEX =
-  /^<span style="color:\s*[^"]+">\s*([\s\S]*?)\s*<\/span>$/i;
+  /^<span style="color:\s*([^"]+)">\s*([\s\S]*?)\s*<\/span>$/i;
+
+const escapeHtml = (str: string) =>
+  str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const unescapeHtml = (str: string) =>
+  str
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, "&");
 
 export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   value,
@@ -28,114 +42,53 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
 }) => {
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [color, setColor] = React.useState("#000000");
-  const [preview, setPreview] = React.useState(true);
-  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  const [editableText, setEditableText] = React.useState<string>("");
 
   React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        wrapperRef.current?.contains &&
-        !wrapperRef.current.contains(event.target as Node)
-      ) {
-        setPreview(true); // switch to preview mode
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
-  React.useEffect(() => {
-    const m = value?.match(/^<span style="color:\s*([^";]+)[";]?\s*">/i);
-    if (m && m[1]) setColor(m[1]);
+    if (!value) {
+      setEditableText("");
+      return;
+    }
+    const match = value.match(SPAN_WRAPPER_REGEX);
+    if (match) {
+      const [, matchedColor, inner] = match;
+      if (matchedColor) setColor(matchedColor.trim());
+      setEditableText(unescapeHtml(inner ?? ""));
+    } else {
+      setEditableText(unescapeHtml(value));
+    }
   }, [value]);
 
-  const applyColor = (hex: string) => {
-    let updated: string;
-    if (SPAN_WRAPPER_REGEX.test(value || "")) {
-      updated = value!.replace(
-        /^<span style="color:\s*[^"]+">/,
-        `<span style="color:${hex}">`
-      );
-    } else {
-      updated = `<span style="color:${hex}">${value}</span>`;
-    }
-    onChange(updated);
-    setColor(hex);
+  const handleColorChange = (c: ColorResult) => {
+    setColor(c.hex);
+    setPickerOpen(false);
+    onChange(`<span style="color:${c.hex}">${escapeHtml(editableText)}</span>`);
   };
 
   const clearColor = () => {
-    if (SPAN_WRAPPER_REGEX.test(value || "  ")) {
-      const plain = value!.replace(SPAN_WRAPPER_REGEX, "$1");
-      onChange(plain);
-    }
+    setColor("#000000");
     setPickerOpen(false);
+    onChange(`<span style="color:#000000">${escapeHtml(editableText)}</span>`);
   };
 
-  const handleColorChange = (c: ColorResult) => {
-    applyColor(c.hex);
-    setPreview(true);
-  };
   return (
     <div
-      ref={wrapperRef}
       className={className}
       style={{ display: "flex", flexDirection: "column" }}
     >
-      {/* Content area */}
-      {preview ? (
-        <div
-          style={{
-            whiteSpace: "pre-wrap",
-            wordBreak: "break-word",
-            fontSize: fontSize || 14,
-            padding: 0,
-            margin: 0,
-            cursor: "text",
-          }}
-          onClick={() => setPreview(false)}
-        >
-          <SafeMarkdown
-            children={value}
-            components={{
-              p: ({ node, ...props }) => <p style={{ margin: 0 }} {...props} />,
-              h1: ({ node, ...props }) => (
-                <h1 style={{ margin: 0 }} {...props} />
-              ),
-              h2: ({ node, ...props }) => (
-                <h2 style={{ margin: 0 }} {...props} />
-              ),
-              h3: ({ node, ...props }) => (
-                <h3 style={{ margin: 0 }} {...props} />
-              ),
-              ul: ({ node, ...props }) => (
-                <ul style={{ margin: 0, paddingLeft: 16 }} {...props} />
-              ),
-              ol: ({ node, ...props }) => (
-                <ol style={{ margin: 0, paddingLeft: 16 }} {...props} />
-              ),
-              li: ({ node, ...props }) => (
-                <li style={{ margin: 0 }} {...props} />
-              ),
-              span: ({ node, ...props }) => (
-                <span style={{ display: "inline-block" }} {...props} />
-              ),
-            }}
-          />
-        </div>
-      ) : (
-        <Input.TextArea
-          value={value}
-          style={{ color: color, fontSize: fontSize }}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          disabled={disabled}
-          autoSize
-        />
-      )}
+      {/* Text area */}
+      <Input.TextArea
+        value={editableText}
+        style={{ color: color, fontSize: fontSize }}
+        onChange={(e) => {
+          const newText = e.target.value;
+          setEditableText(newText);
+          onChange(`<span style="color:${color}">${escapeHtml(newText)}</span>`);
+        }}
+        placeholder={placeholder}
+        disabled={disabled}
+        autoSize
+      />
 
       {/* Controls row */}
       <div
@@ -177,27 +130,6 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
             }}
           />
         </Popover>
-
-        {/* Preview toggle button */}
-        {preview ? (
-          <EditOutlined
-            style={{ color: color }}
-            color={color}
-            onClick={(e) => {
-              e.stopPropagation(); // ✅ prevents Popover or parent from re-firing
-              setPreview(false); // ✅ safe toggle
-            }}
-          />
-        ) : (
-          <EyeOutlined
-            style={{ color: color }}
-            color={color}
-            onClick={(e) => {
-              e.stopPropagation(); // ✅ prevents Popover or parent from re-firing
-              setPreview(true); // ✅ safe toggle
-            }}
-          />
-        )}
       </div>
     </div>
   );

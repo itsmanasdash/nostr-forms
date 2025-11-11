@@ -26,6 +26,7 @@ import AIAnalysisChat from "./components/AIAnalysisChat";
 import { ResponseHeader } from "./components/ResponseHeader";
 import { AddressPointer } from "nostr-tools/nip19";
 import { SubCloser } from "nostr-tools/abstract-pool";
+import SafeMarkdown from "../../components/SafeMarkdown";
 
 const { Text } = Typography;
 
@@ -240,7 +241,7 @@ export const Response = () => {
   const getColumns = () => {
     const columns: Array<{
       key: string;
-      title: string;
+      title: string | JSX.Element;
       dataIndex: string;
       fixed?: "left" | "right";
       width?: number;
@@ -273,7 +274,7 @@ export const Response = () => {
     ];
     const rightColumns: Array<{
       key: string;
-      title: string;
+      title: string | JSX.Element;
       dataIndex: string;
       fixed?: "left" | "right";
       width?: number;
@@ -301,7 +302,11 @@ export const Response = () => {
       let [_, fieldId, __, label] = field;
       columns.push({
         key: fieldId,
-        title: label || `Question: ${fieldId.substring(0, 5)}...`,
+        title: label ? (
+          <SafeMarkdown components={{ p: "span" }}>{label as any}</SafeMarkdown>
+        ) : (
+          `Question: ${fieldId.substring(0, 5)}...`
+        ),
         dataIndex: fieldId,
         width: 150,
       });
@@ -393,7 +398,9 @@ export const Response = () => {
       <SummaryStyle>
         <div className="summary-container">
           <Card>
-            <Text className="heading">{getFormName()}</Text>
+            <Text className="heading">
+              <SafeMarkdown components={{ p: "span" }}>{getFormName()}</SafeMarkdown>
+            </Text>
             <Divider />
             <div className="response-count-container">
               <Text className="response-count">
