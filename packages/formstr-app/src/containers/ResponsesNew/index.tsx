@@ -241,7 +241,7 @@ export const Response = () => {
   const getColumns = () => {
     const columns: Array<{
       key: string;
-      title: any;
+      title: string | JSX.Element;
       dataIndex: string;
       fixed?: "left" | "right";
       width?: number;
@@ -274,7 +274,7 @@ export const Response = () => {
     ];
     const rightColumns: Array<{
       key: string;
-      title: any;
+      title: string | JSX.Element;
       dataIndex: string;
       fixed?: "left" | "right";
       width?: number;

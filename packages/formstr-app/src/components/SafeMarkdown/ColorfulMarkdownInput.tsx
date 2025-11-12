@@ -1,7 +1,10 @@
 import React from "react";
 import { Input, Popover, Button } from "antd";
 import { SketchPicker, ColorResult } from "react-color";
+<<<<<<< global-color
 import useFormBuilderContext from "../../containers/CreateFormNew/hooks/useFormBuilderContext";
+=======
+>>>>>>> master
 
 type Props = {
   value?: string;
@@ -14,7 +17,12 @@ type Props = {
   disabled?: boolean;
 };
 
+<<<<<<< global-color
 const SPAN_WRAPPER_REGEX = /^<span([^>]*)>\s*([\s\S]*?)\s*<\/span>$/i;
+=======
+const SPAN_WRAPPER_REGEX =
+  /^<span style="color:\s*([^"]+)">\s*([\s\S]*?)\s*<\/span>$/i;
+>>>>>>> master
 
 const escapeHtml = (str: string) =>
   str
@@ -41,6 +49,7 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   disabled,
 }) => {
   const [pickerOpen, setPickerOpen] = React.useState(false);
+<<<<<<< global-color
   const [color, setColor] = React.useState<string | null>(null);
   const [editableText, setEditableText] = React.useState<string>("");
   const { formSettings } = useFormBuilderContext();
@@ -107,10 +116,30 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
       onChange(newValue);
     }
   }, [globalColor, color, editableText, onChange]);
+=======
+  const [color, setColor] = React.useState("#000000");
+  const [editableText, setEditableText] = React.useState<string>("");
+
+  React.useEffect(() => {
+    if (!value) {
+      setEditableText("");
+      return;
+    }
+    const match = value.match(SPAN_WRAPPER_REGEX);
+    if (match) {
+      const [, matchedColor, inner] = match;
+      if (matchedColor) setColor(matchedColor.trim());
+      setEditableText(unescapeHtml(inner ?? ""));
+    } else {
+      setEditableText(unescapeHtml(value));
+    }
+  }, [value]);
+>>>>>>> master
 
   const handleColorChange = (c: ColorResult) => {
     setColor(c.hex);
     setPickerOpen(false);
+<<<<<<< global-color
     onChange(
       `<span style="color:${c.hex}">${escapeHtml(editableText)}</span>`
     );
@@ -145,6 +174,17 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
     }
   };
 
+=======
+    onChange(`<span style="color:${c.hex}">${escapeHtml(editableText)}</span>`);
+  };
+
+  const clearColor = () => {
+    setColor("#000000");
+    setPickerOpen(false);
+    onChange(`<span style="color:#000000">${escapeHtml(editableText)}</span>`);
+  };
+
+>>>>>>> master
   return (
     <div
       className={className}
@@ -153,8 +193,17 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
       {/* Text area */}
       <Input.TextArea
         value={editableText}
+<<<<<<< global-color
         style={{ color: effectiveColor, fontSize: fontSize }}
         onChange={handleTextChange}
+=======
+        style={{ color: color, fontSize: fontSize }}
+        onChange={(e) => {
+          const newText = e.target.value;
+          setEditableText(newText);
+          onChange(`<span style="color:${color}">${escapeHtml(newText)}</span>`);
+        }}
+>>>>>>> master
         placeholder={placeholder}
         disabled={disabled}
         autoSize
