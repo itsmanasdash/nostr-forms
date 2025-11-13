@@ -116,13 +116,19 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.signature]: (
         <SignatureFiller
+          defaultValue={defaultValue as string}
           fieldConfig={fieldConfig}
           onChange={onChange}
           disabled={disabled}
         />
       ),
       [AnswerTypes.datetime]: (
-        <DateTimeFiller onChange={handleValueChange} disabled={disabled} />
+        <DateTimeFiller
+          defaultValue={defaultValue as string}
+          onChange={handleValueChange}
+          disabled={disabled} 
+          testId={`${testId}:datetime`}
+        />
       ),
     };
 
