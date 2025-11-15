@@ -7,6 +7,7 @@ import SectionDeleteButton from "./SectionDeleteButton";
 import {
   SectionWrapper,
   StyledCard,
+  CardContainer,
   OrangeStrip,
   SectionLabel,
 } from "./Section.style";
@@ -101,61 +102,64 @@ const Section: React.FC<SectionProps> = ({
           </div>
         )}
 
-        <StyledCard
+        <CardContainer
           style={{
-            border: isDropTarget ? "1px solid #1890ff" : "1px solid #f0f0f0",
+            border: isDropTarget ? "1px solid #1890ff" : "1.5px dashed #000000",
           }}
-          extra={
-            <Space>
-              <Button
-                type="text"
-                icon={collapsed ? <DownOutlined /> : <UpOutlined />}
-                onClick={() => setCollapsed(!collapsed)}
-              />
-              <SectionDeleteButton
-                onDelete={handleDelete}
-                onDeleteWithQuestions={handleDeleteWithQuestions}
-                questionCount={section.questionIds.length}
-                sectionTitle={section.title}
-                className="action-icon"
-              />
-            </Space>
-          }
         >
-          <SectionWrapper>
-            <div className="section-header">
-              <div style={{ width: "100%" }}>
-                <Input
-                  className="section-title-input"
-                  value={section.title || ""}
-                  onChange={handleTitleChange}
-                  placeholder="Section title"
-                  onClick={(e) => e.stopPropagation()}
-                  bordered={false}
+          <StyledCard
+            extra={
+              <Space>
+                <Button
+                  type="text"
+                  icon={collapsed ? <DownOutlined /> : <UpOutlined />}
+                  onClick={() => setCollapsed(!collapsed)}
                 />
-
-                {!collapsed && (
-                  <TextArea
-                    className="section-description"
-                    value={section.description || ""}
-                    onChange={handleDescriptionChange}
-                    placeholder="Click to edit section description"
-                    autoSize
-                    bordered={false}
+                <SectionDeleteButton
+                  onDelete={handleDelete}
+                  onDeleteWithQuestions={handleDeleteWithQuestions}
+                  questionCount={section.questionIds.length}
+                  sectionTitle={section.title}
+                  className="action-icon"
+                />
+              </Space>
+            }
+          >
+            <SectionWrapper>
+              <div className="section-header">
+                <div style={{ width: "100%" }}>
+                  <Input
+                    className="section-title-input"
+                    value={section.title || ""}
+                    onChange={handleTitleChange}
+                    placeholder="Section title"
                     onClick={(e) => e.stopPropagation()}
+                    bordered={false}
                   />
-                )}
-              </div>
-            </div>
 
-            {!collapsed && (
-              <>
-                <Divider />
-                <div className="section-content">{children}</div>
-              </>
-            )}
-          </SectionWrapper>
-        </StyledCard>
+                  {!collapsed && (
+                    <TextArea
+                      className="section-description"
+                      value={section.description || ""}
+                      onChange={handleDescriptionChange}
+                      placeholder="Click to edit section description"
+                      autoSize
+                      bordered={false}
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  )}
+                </div>
+              </div>
+
+              {!collapsed && (
+                <>
+                  <Divider />
+                  <div className="section-content">{children}</div>
+                </>
+              )}
+            </SectionWrapper>
+          </StyledCard>
+        </CardContainer>
       </div>
     </div>
   );
