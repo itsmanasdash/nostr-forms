@@ -2,7 +2,12 @@ import { DatePicker } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useState, useEffect } from "react";
 
+interface IAnswerSettings {
+  defaultValue?: string | number | Date;
+}
+
 interface DateTimeFillerProps {
+  fieldConfig?: IAnswerSettings;
   defaultValue?: string;
   onChange: (value: string) => void; // Unix timestamp (seconds) as string
   disabled?: boolean;
@@ -10,29 +15,45 @@ interface DateTimeFillerProps {
 }
 
 export const DateTimeFiller: React.FC<DateTimeFillerProps> = ({
+  fieldConfig,
   defaultValue,
   onChange,
   disabled = false,
   testId = "datetime-filler",
 }) => {
+  // Initialize date from default value if valid
+  
   const getInitialDate = (): Dayjs | null => {
-    if (!defaultValue) return null;
-    const parsed = dayjs(parseInt(defaultValue) * 1000);
+    const defaultVal = fieldConfig?.defaultValue || defaultValue;
+    if (!defaultVal) return null;
+    
+    // If defaultValue is a Unix timestamp (seconds), convert it
+    if (typeof defaultVal === 'string' && /^\d+$/.test(defaultVal)) {
+      const parsed = dayjs(parseInt(defaultVal) * 1000);
+      return parsed.isValid() ? parsed : null;
+    }
+    const parsed = dayjs(defaultVal);
     return parsed.isValid() ? parsed : null;
   };
 
   const [date, setDate] = useState<Dayjs | null>(getInitialDate);
 
   useEffect(() => {
-    if (!defaultValue) {
+    const defaultVal = fieldConfig?.defaultValue || defaultValue;
+    if (!defaultVal) {
       setDate(null);
       return;
     }
     let newDate: Dayjs | null = null;
-    const parsed = dayjs(parseInt(defaultValue) * 1000);
-    newDate = parsed.isValid() ? parsed : null;
+    if (typeof defaultVal === 'string' && /^\d+$/.test(defaultVal)) {
+      const parsed = dayjs(parseInt(defaultVal) * 1000);
+      newDate = parsed.isValid() ? parsed : null;
+    } else {
+      const parsed = dayjs(defaultVal);
+      newDate = parsed.isValid() ? parsed : null;
+    }
     setDate(newDate);
-  }, [defaultValue]);
+  }, [defaultValue, fieldConfig?.defaultValue]);
 
   // Emit initial value on mount
   useEffect(() => {

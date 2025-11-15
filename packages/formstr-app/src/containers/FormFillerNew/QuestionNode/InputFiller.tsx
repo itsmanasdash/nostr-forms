@@ -124,6 +124,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
       ),
       [AnswerTypes.datetime]: (
         <DateTimeFiller
+          fieldConfig={fieldConfig}
           defaultValue={defaultValue as string}
           onChange={handleValueChange}
           disabled={disabled} 
