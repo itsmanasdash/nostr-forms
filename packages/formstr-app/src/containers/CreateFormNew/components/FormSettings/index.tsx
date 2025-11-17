@@ -2,6 +2,7 @@ import {
   Button,
   Collapse,
   Divider,
+  Popover,
   Slider,
   Switch,
   Tooltip,
@@ -16,6 +17,8 @@ import { Notifications } from "./Notifications";
 import { isMobile } from "../../../../utils/utility";
 import RelayManagerModal from "./RelayManagerModal";
 import { BackgroundImageSetting } from "./BackgroundImage";
+import { SketchPicker , ColorResult } from "react-color";
+import { useState } from "react";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
@@ -27,7 +30,18 @@ function FormSettings() {
     toggleRelayManagerModal,
     isRelayManagerModalOpen,
   } = useFormBuilderContext();
+  const [color, setColor] = useState(formSettings.globalColor || "#000000");
+  const [pickerOpen, setPickerOpen] = useState(false);
 
+  const handleColorChange = (c: ColorResult) => {
+    setColor(c.hex);
+    updateFormSetting({ globalColor: c.hex });
+  };
+  const clearColor = () => {
+    setColor("#000000");
+    updateFormSetting({ globalColor: "#000000" });
+    setPickerOpen(false);
+  };
   return (
     <StyleWrapper>
       {/* Always visible */}
@@ -87,6 +101,40 @@ function FormSettings() {
         </Panel>
 
         <Panel header="Customization" key="customization">
+          <div className="property-setting">
+            <div>Global Color</div>
+          <Popover
+            open={pickerOpen}
+            onOpenChange={(open) => setPickerOpen(open)}
+            content={
+              <div style={{ padding: 4 }}>
+                <SketchPicker color={color} onChange={handleColorChange} />
+                <div style={{ marginTop: 8, textAlign: "right" }}>
+                  <Button size="small" onClick={clearColor}>
+                    Clear
+                  </Button>
+                </div>
+              </div>
+            }
+            placement="topLeft"
+            overlayStyle={{ padding: 0 }}
+            destroyTooltipOnHide
+          >
+            <div
+              role="button"
+              aria-label="Open color picker"
+              style={{
+                width: 18,
+                height: 18,
+                borderRadius: "50%",
+                background: color,
+                boxShadow: "0 0 0 1px #fff, 0 1px 3px rgba(0,0,0,.2)",
+                cursor: "pointer",
+              }}
+            />
+          </Popover>
+          </div>
+          <Divider className="divider" />
           <TitleImage titleImageUrl={formSettings.titleImageUrl} />
           <Divider className="divider" />
           <BackgroundImageSetting
