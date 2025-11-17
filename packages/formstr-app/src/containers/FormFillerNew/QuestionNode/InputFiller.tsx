@@ -6,7 +6,9 @@ import { DropdownFiller } from "./InputTypes/DropdownFiller";
 import { DateFiller } from "./InputTypes/DateFiller";
 import { TimeFiller } from "./InputTypes/TimeFiller";
 import { Option } from "@formstr/sdk/dist/formstr/nip101";
-import { AnswerTypes } from "@formstr/sdk/dist/interfaces";
+import { SignatureFiller } from "./InputTypes/SignatureFiller";
+import { DateTimeFiller } from "./InputTypes/DateTimeFiller";
+import { AnswerTypes } from "../../../nostr/types";
 
 interface InputFillerProps {
   fieldConfig: any;
@@ -14,7 +16,7 @@ interface InputFillerProps {
   onChange: (answer: string, message?: string) => void;
   defaultValue?: string | number | boolean;
   disabled?: boolean;
-  testId? : string;
+  testId?: string;
 }
 
 export const InputFiller: React.FC<InputFillerProps> = ({
@@ -36,10 +38,7 @@ export const InputFiller: React.FC<InputFillerProps> = ({
     onChange(value, message);
   };
 
-  const getInput = (
-    answerType: AnswerTypes,
-    answerSettings: any
-  ) => {
+  const getInput = (answerType: AnswerTypes) => {
     const INPUT_TYPE_COMPONENT_MAP: { [key in AnswerTypes]?: JSX.Element } = {
       [AnswerTypes.label]: <></>,
       [AnswerTypes.shortText]: (
@@ -115,10 +114,27 @@ export const InputFiller: React.FC<InputFillerProps> = ({
           testId={`${testId}:time`}
         />
       ),
+      [AnswerTypes.signature]: (
+        <SignatureFiller
+          defaultValue={defaultValue as string}
+          fieldConfig={fieldConfig}
+          onChange={onChange}
+          disabled={disabled}
+        />
+      ),
+      [AnswerTypes.datetime]: (
+        <DateTimeFiller
+          fieldConfig={fieldConfig}
+          defaultValue={defaultValue as string}
+          onChange={handleValueChange}
+          disabled={disabled} 
+          testId={`${testId}:datetime`}
+        />
+      ),
     };
 
     return INPUT_TYPE_COMPONENT_MAP[answerType];
   };
 
-  return <>{getInput(fieldConfig.renderElement, fieldConfig)}</>;
+  return <>{getInput(fieldConfig.renderElement)}</>;
 };

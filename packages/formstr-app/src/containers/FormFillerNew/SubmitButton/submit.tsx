@@ -1,10 +1,13 @@
 import { LoadingOutlined, DownOutlined } from "@ant-design/icons";
-import { Button, FormInstance, Dropdown, MenuProps } from "antd";
+import { Button, FormInstance, Dropdown, MenuProps, Typography } from "antd";
 import React, { useState } from "react";
-import { sendResponses } from "../../../nostr/common";
+import { sendNRPCWebhook, sendResponses } from "../../../nostr/common";
 import { RelayPublishModal } from "../../../components/RelayPublishModal/RelaysPublishModal";
 import { Event, generateSecretKey } from "nostr-tools";
-import { Response } from "../../../nostr/types";
+import { Response, Tag } from "../../../nostr/types";
+import { getFormSettings } from "./utils";
+
+const { Text } = Typography;
 
 interface SubmitButtonProps {
   selfSign: boolean | undefined;
@@ -15,6 +18,7 @@ interface SubmitButtonProps {
   disabled?: boolean;
   disabledMessage?: string;
   relays: string[];
+  formTemplate: Tag[];
 }
 
 export const SubmitButton: React.FC<SubmitButtonProps> = ({
@@ -26,54 +30,125 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
   disabled = false,
   disabledMessage = "disabled",
   relays,
+  formTemplate,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isValidating, setIsValidating] = useState(false);
   const [isDisabled, setIsDisabled] = useState(false);
   const [acceptedRelays, setAcceptedRelays] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [validationMessage, setValidationMessage] = useState<string | null>(
+    null
+  );
+  const [isValidated, setIsValidated] = useState(false);
 
-  const saveResponse = async (anonymous: boolean = true) => {
+  // --- Helpers ---
+  const buildResponses = (form: FormInstance): Response[] => {
+    const formResponses = form.getFieldsValue(true);
+    return Object.keys(formResponses).map((fieldId: string) => {
+      let answer = null;
+      let message = null;
+      if (formResponses[fieldId]) [answer, message] = formResponses[fieldId];
+      return ["response", fieldId, answer, JSON.stringify({ message })];
+    });
+  };
+
+  const fireWebhook = async (
+    formTemplate: Tag[],
+    responses: Response[],
+    anonUser?: Uint8Array
+  ) => {
+    const relays = formEvent.tags
+      .filter((value: Tag) => value[0] === "relay")
+      .map((t) => t[1]);
+    return await sendNRPCWebhook(formTemplate, responses, relays, anonUser);
+  };
+
+  // --- Main ---
+  const saveResponse = async (anonymous: boolean) => {
     let formId = formEvent.tags.find((t) => t[0] === "d")?.[1];
     if (!formId) {
       alert("FORM ID NOT FOUND");
       return;
     }
-    let pubKey = formEvent.pubkey;
-    let formResponses = form.getFieldsValue(true);
-    const responses: Response[] = Object.keys(formResponses).map(
-      (fieldId: string) => {
-        let answer = null;
-        let message = null;
-        if (formResponses[fieldId]) [answer, message] = formResponses[fieldId];
-        return ["response", fieldId, answer, JSON.stringify({ message })];
-      }
-    );
-    let anonUser = null;
-    if (anonymous) {
-      anonUser = generateSecretKey();
-    }
 
-    sendResponses(
+    const pubKey = formEvent.pubkey;
+    const responses = buildResponses(form);
+    const anonUser = anonymous ? generateSecretKey() : null;
+
+    setIsSubmitting(true);
+    await sendResponses(
       pubKey,
-      formId,
+      formId!,
       responses,
       anonUser,
       true,
       relays,
       (url: string) => setAcceptedRelays((prev) => [...prev, url])
-    ).then((res: any) => {
-      setIsSubmitting(false);
-      onSubmit();
-    });
+    );
+    setIsSubmitting(false);
+    onSubmit();
   };
 
-  const submitForm = async (anonymous: boolean = true) => {
-    setIsSubmitting(true);
+  // --- Webhook Validation ---
+  const validateWebhook = async () => {
+    setErrorMessage(null);
+    setValidationMessage(null);
+
     try {
       await form.validateFields();
       let errors = form.getFieldsError().filter((e) => e.errors.length > 0);
+      if (errors.length > 0) return;
+      setIsValidating(true);
+      const responses = buildResponses(form);
+      const anonUser = generateSecretKey(); // validation always done anonymously
+      const nrpcResponse = await fireWebhook(formTemplate, responses, anonUser);
+      setIsValidating(false);
+
+      if (!nrpcResponse) {
+        setErrorMessage("No response from webhook");
+        return;
+      }
+
+      const status = nrpcResponse.tags.find((t) => t[0] === "status")?.[1];
+      if (status === "200") {
+        setIsValidated(true);
+        setValidationMessage("✅ Validation successful. You can now submit.");
+      } else {
+        const errorTags = nrpcResponse.tags.filter((t) => t[0] === "error");
+        const msg =
+          errorTags.map((tag: string[]) => tag[2]).join(", ") ||
+          `Validation failed with status ${status}`;
+        setErrorMessage(msg);
+        setIsValidated(false);
+      }
+    } catch (err) {
+      setIsValidating(false);
+      console.log("Error during validation", err);
+      setErrorMessage("Validation failed");
+    }
+  };
+
+  const submitForm = async (anonymous: boolean = true) => {
+    setErrorMessage(null);
+    try {
+      await form.validateFields();
+
+      let errors = form.getFieldsError().filter((e) => e.errors.length > 0);
       if (errors.length === 0) {
         setIsDisabled(true);
-        await saveResponse(anonymous);
+
+        const responses = buildResponses(form);
+        const anonUser = anonymous ? generateSecretKey() : null;
+
+        if (requireWebhookPass) {
+          // When webhook is required, we already validated before
+          await saveResponse(anonymous);
+        } else {
+          // Fire-and-forget webhook after saving
+          await saveResponse(anonymous);
+          fireWebhook(formTemplate, responses, anonUser || undefined);
+        }
       }
     } catch (err) {
       setIsSubmitting(false);
@@ -111,30 +186,94 @@ export const SubmitButton: React.FC<SubmitButtonProps> = ({
     onClick: handleMenuClick,
   };
 
+  const settings = getFormSettings(formTemplate);
+  const requireWebhookPass = settings?.requireWebhookPass ?? false;
+
   return (
     <div>
-      <Dropdown.Button
-        menu={menuProps}
-        type="primary"
-        onClick={handleButtonClick}
-        icon={<DownOutlined />}
-        disabled={isDisabled}
-        className="submit-button"
-        data-testid="submit-button"
-      >
-        {disabled ? (
-          disabledMessage
-        ) : isSubmitting ? (
-          <span>
-            <LoadingOutlined className="mr-2" />
-            Submitting...
-          </span>
-        ) : selfSign ? (
-          items[1].label
-        ) : (
-          "Submit"
-        )}
-      </Dropdown.Button>
+      {/* If webhook required but not validated yet → show Validate button */}
+      {requireWebhookPass && !isValidated ? (
+        <Button
+          type="primary"
+          onClick={validateWebhook}
+          disabled={isDisabled}
+          className="validate-button"
+          data-testid="validate-button"
+        >
+          {isValidating ? (
+            <>
+              <LoadingOutlined className="mr-2" />
+              <span
+                style={{
+                  top: 10,
+                  marginTop: 10,
+                  marginLeft: 5,
+                  color: "white",
+                }}
+              >
+                Validating...
+              </span>
+            </>
+          ) : (
+            <div style={{ top: 7 }}>
+              <Text
+                style={{
+                  top: 10,
+                  marginTop: 10,
+                  marginLeft: -2,
+                  color: "white",
+                }}
+              >
+                Validate
+              </Text>
+            </div>
+          )}
+        </Button>
+      ) : (
+        <Dropdown.Button
+          menu={menuProps}
+          type="primary"
+          onClick={handleButtonClick}
+          icon={<DownOutlined />}
+          disabled={isDisabled || disabled}
+          className="submit-button"
+          data-testid="submit-button"
+        >
+          {disabled ? (
+            disabledMessage
+          ) : isSubmitting ? (
+            <span>
+              <LoadingOutlined className="mr-2" />
+              Submitting...
+            </span>
+          ) : selfSign ? (
+            items[1].label
+          ) : (
+            "Submit"
+          )}
+        </Dropdown.Button>
+      )}
+
+      {/* Feedback messages */}
+      {validationMessage && (
+        <div
+          style={{ color: "green", marginTop: 8 }}
+          data-testid="validation-success"
+        >
+          {validationMessage}
+        </div>
+      )}
+      {errorMessage && (
+        <div
+          style={{ color: "red", marginTop: 8 }}
+          className="submit-button"
+          data-testid="submit-error"
+        >
+          Error: {errorMessage}
+        </div>
+      )}
+
+      {/* Relay publish status modal */}
       <RelayPublishModal
         relays={relays}
         acceptedRelays={acceptedRelays}

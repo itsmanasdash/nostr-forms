@@ -42,7 +42,7 @@ export const FormFiller: React.FC<FormFillerProps> = ({
   const { pubkey: userPubKey, requestPubkey } = useProfileContext();
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [formEvent, setFormEvent] = useState<Event | undefined>(
-    preFetchedFormContent,
+    preFetchedFormContent
   );
   const [searchParams] = useSearchParams();
   const hideTitleImage = searchParams.get("hideTitleImage") === "true";
@@ -59,7 +59,7 @@ export const FormFiller: React.FC<FormFillerProps> = ({
   const initialize = async (
     formAuthor: string,
     formId: string,
-    relays?: string[],
+    relays?: string[]
   ) => {
     const form = await fetchFormTemplate(
       formAuthor,
@@ -68,7 +68,7 @@ export const FormFiller: React.FC<FormFillerProps> = ({
       (event: Event) => {
         setFormEvent(event);
       },
-      relays,
+      relays
     );
   };
 
@@ -150,6 +150,8 @@ export const FormFiller: React.FC<FormFillerProps> = ({
           hideDescription={hideDescription}
         />
         <ThankYouScreen
+          viewKey={viewKeyParams}
+          formEvent={formEvent}
           isOpen={formSubmitted}
           onClose={() => navigate(ROUTES.DASHBOARD)}
         />

@@ -24,7 +24,7 @@ function EditForm() {
     relays = relaysArray;
   }
   const formSecret = window.location.hash.replace(/^#/, "");
-  const { initializeForm, saveDraft, selectedTab, getFormSpec } =
+  const { initializeForm, saveDraft, selectedTab, getFormSpec, formSettings } =
     useFormBuilderContext();
   const [initialized, setInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -40,7 +40,10 @@ function EditForm() {
       kinds: [30168],
     };
     let pool = new SimplePool();
-    let formEvent = await pool.get(relays || getDefaultRelays(), filter);
+    let formEvent = await pool.get(
+      Array.from(new Set([...(relays || []), ...getDefaultRelays()]) || []),
+      filter
+    );
     if (!formEvent) {
       setError("Form Not Found :(");
       return;
@@ -112,15 +115,17 @@ function EditForm() {
     return <FormBuilder />;
   }
   if (selectedTab === HEADER_MENU_KEYS.PREVIEW) {
-      return (
-        <FormRenderer
-          formTemplate={getFormSpec()}
-          form={null}
-          footer={null}
-          onInput={() => {}}
-        />
-      );
-    }
+    return (
+      <FormRenderer
+        formTemplate={getFormSpec()}
+        form={null}
+        footer={null}
+        onInput={() => {}}
+        isPreview={true}
+        formstrBranding={formSettings.formstrBranding}
+      />
+    );
+  }
 
   return <></>;
 }

@@ -3,6 +3,8 @@ import {
   Collapse,
   Divider,
   Popover,
+  Input,
+  Select,
   Slider,
   Switch,
   Tooltip,
@@ -17,15 +19,18 @@ import { Notifications } from "./Notifications";
 import { isMobile } from "../../../../utils/utility";
 import RelayManagerModal from "./RelayManagerModal";
 import { BackgroundImageSetting } from "./BackgroundImage";
-import { SketchPicker , ColorResult } from "react-color";
+import { SketchPicker, ColorResult } from "react-color";
 import { useState } from "react";
+import { ThankYouScreenImageSetting } from "./ThankYouImage";
 
 const { Text } = Typography;
 const { Panel } = Collapse;
+import Automations from "./Automations";
 
 function FormSettings() {
   const {
     formSettings,
+    relayList,
     updateFormSetting,
     toggleRelayManagerModal,
     isRelayManagerModalOpen,
@@ -103,36 +108,36 @@ function FormSettings() {
         <Panel header="Customization" key="customization">
           <div className="property-setting">
             <div>Global Color</div>
-          <Popover
-            open={pickerOpen}
-            onOpenChange={(open) => setPickerOpen(open)}
-            content={
-              <div style={{ padding: 4 }}>
-                <SketchPicker color={color} onChange={handleColorChange} />
-                <div style={{ marginTop: 8, textAlign: "right" }}>
-                  <Button size="small" onClick={clearColor}>
-                    Clear
-                  </Button>
+            <Popover
+              open={pickerOpen}
+              onOpenChange={(open) => setPickerOpen(open)}
+              content={
+                <div style={{ padding: 4 }}>
+                  <SketchPicker color={color} onChange={handleColorChange} />
+                  <div style={{ marginTop: 8, textAlign: "right" }}>
+                    <Button size="small" onClick={clearColor}>
+                      Clear
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            }
-            placement="topLeft"
-            overlayStyle={{ padding: 0 }}
-            destroyTooltipOnHide
-          >
-            <div
-              role="button"
-              aria-label="Open color picker"
-              style={{
-                width: 18,
-                height: 18,
-                borderRadius: "50%",
-                background: color,
-                boxShadow: "0 0 0 1px #fff, 0 1px 3px rgba(0,0,0,.2)",
-                cursor: "pointer",
-              }}
-            />
-          </Popover>
+              }
+              placement="topLeft"
+              overlayStyle={{ padding: 0 }}
+              destroyTooltipOnHide
+            >
+              <div
+                role="button"
+                aria-label="Open color picker"
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: "50%",
+                  background: color,
+                  boxShadow: "0 0 0 1px #fff, 0 1px 3px rgba(0,0,0,.2)",
+                  cursor: "pointer",
+                }}
+              />
+            </Popover>
           </div>
           <Divider className="divider" />
           <TitleImage titleImageUrl={formSettings.titleImageUrl} />
@@ -143,9 +148,16 @@ function FormSettings() {
               updateFormSetting({ backgroundImageUrl: url });
             }}
           />
+          <ThankYouScreenImageSetting
+            value={formSettings.thankYouScreenImageUrl}
+            onChange={(url: string) => {
+              updateFormSetting({ thankYouScreenImageUrl: url });
+            }}
+          />
+          <Divider className="divider" />
           <div className="property-setting">
-            <div style={{display: "flex", flexDirection: "column"}}>
-            <Text>Card Transparency</Text>
+            <div style={{ display: "flex", flexDirection: "column" }}>
+              <Text>Card Transparency</Text>
               <Slider
                 min={0.5}
                 max={1}
@@ -161,6 +173,20 @@ function FormSettings() {
               </Text>
             </div>
           </div>
+          <Tooltip
+            title="This toggle will add Formstr branding to the bottom of your form."
+            trigger={isMobile() ? "click" : "hover"}
+          >
+            <div className="property-setting">
+              <Text className="property-text">Add Formstr branding</Text>
+              <Switch
+                checked={formSettings.formstrBranding}
+                onChange={(checked) =>
+                  updateFormSetting({ formstrBranding: checked })
+                }
+              />
+            </div>
+          </Tooltip>
         </Panel>
 
         <Panel header="Relay Configuration" key="relays">
@@ -171,6 +197,9 @@ function FormSettings() {
           >
             Manage Relays
           </Button>
+        </Panel>
+        <Panel header="Automations" key="nrpc-webhook">
+          <Automations />
         </Panel>
       </Collapse>
 
