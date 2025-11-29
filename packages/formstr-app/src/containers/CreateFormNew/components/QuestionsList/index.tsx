@@ -167,9 +167,9 @@ export const QuestionsList = () => {
             style={{
               marginBottom: 24,
               padding: 16,
-              border: "1px solid #f0f0f0",
+              border: "1.5px dashed #000000",
               borderRadius: 8,
-              backgroundColor: "#fafafa",
+              backgroundColor: "rgba(255, 255, 255, 0.4)"
             }}
           >
             <h4 style={{ margin: "0 0 16px 0", color: "#8c8c8c" }}>

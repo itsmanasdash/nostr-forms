@@ -24,6 +24,8 @@ interface FormRendererProps {
   hideDescription?: boolean;
   disabled?: boolean;
   initialValues?: Record<string, any>;
+  isPreview?: boolean;
+  formstrBranding?: boolean;
 }
 
 // Content item can be either a section or individual questions
@@ -45,6 +47,8 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   hideDescription,
   disabled = false,
   initialValues,
+  formstrBranding,
+  isPreview = false,
 }) => {
   const name = formTemplate.find((tag) => tag[0] === "name")?.[1] || "";
   const settings = JSON.parse(
@@ -128,6 +132,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
 
   // Validate current step
   const validateCurrentStep = async (): Promise<boolean> => {
+    if (isPreview) {
+      return true;
+    }
+
     try {
       const fieldNames = currentItem?.fields.map((field) => field[1]) || [];
       await form.validateFields(fieldNames);
@@ -266,7 +274,10 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   );
 
   return (
-    <FillerStyle $bgImage={settings.backgroundImageUrl} $titleImageUrl={settings.titleImageUrl}>
+    <FillerStyle
+      $bgImage={settings.backgroundImageUrl}
+      $titleImageUrl={settings.titleImageUrl}
+    >
       <div className="filler-container">
         <div className="form-filler">
           {!hideTitleImage && (
@@ -285,21 +296,23 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           </Form>
         </div>
 
-        <div className="branding-container">
-          <Link to="/">
-            <CreatedUsingFormstr />
-          </Link>
-          {!isMobile() && (
-            <a
-              href="https://github.com/abhay-raizada/nostr-forms"
-              className="foss-link"
-            >
-              <Text className="text-style">
-                Formstr is free and Open Source
-              </Text>
-            </a>
-          )}
-        </div>
+        {formstrBranding && (
+          <div className="branding-container">
+            <Link to="/">
+              <CreatedUsingFormstr />
+            </Link>
+            {!isMobile() && (
+              <a
+                href="https://github.com/abhay-raizada/nostr-forms"
+                className="foss-link"
+              >
+                <Text className="text-style">
+                  Formstr is free and Open Source
+                </Text>
+              </a>
+            )}
+          </div>
+        )}
       </div>
     </FillerStyle>
   );
