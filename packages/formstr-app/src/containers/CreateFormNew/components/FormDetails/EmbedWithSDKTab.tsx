@@ -1,9 +1,7 @@
-import { Typography } from "antd";
+import { Box, Link, Typography } from "@mui/material";
 import { CopyButton } from "../../../../components/CopyButton";
 import { makeFormNAddr } from "../../../../utils/utility";
 import { useTranslation } from "react-i18next";
-
-const { Text } = Typography;
 
 export const EmbedWithSDKTab = ({
   pubKey,
@@ -66,9 +64,9 @@ export const EmbedWithSDKTab = ({
 </script>`;
 
   return (
-    <div
+    <Box
       className="sdk-embed"
-      style={{
+      sx={{
         display: "flex",
         flexDirection: "column",
         alignItems: "flex-start",
@@ -77,51 +75,67 @@ export const EmbedWithSDKTab = ({
       }}
     >
       {/* Explanation / docs */}
-      <div style={{ marginBottom: 12 }}>
-        <Text
-          style={{
-            fontSize: 16,
-            display: "block",
-            marginBottom: 6,
+      <Box sx={{ mb: 1.5 }}>
+        <Typography>{t("builder.formDetails.sdk.intro")}</Typography>
+      </Box>
+
+      {/* Code block — copy lives in the block's own header bar so it reads as
+          part of the snippet instead of floating above it. */}
+      <Box
+        sx={{
+          width: "100%",
+          border: 1,
+          borderColor: "divider",
+          borderRadius: 2,
+          overflow: "hidden",
+          mb: 1.5,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            px: 1.5,
+            py: 0.25,
+            bgcolor: "background.default",
+            borderBottom: 1,
+            borderColor: "divider",
           }}
         >
-          {t("builder.formDetails.sdk.stylingTitle")}
-        </Text>
-        <Text>{t("builder.formDetails.sdk.intro")}</Text>
-      </div>
-
-      {/* Copy button */}
-      <div style={{ marginBottom: 10 }}>
-        <CopyButton getText={() => sdkSnippet} />
-      </div>
-
-      {/* Code block */}
-      <pre
-        style={{
-          whiteSpace: "pre-wrap",
-          wordBreak: "break-word",
-          maxHeight: 420,
-          overflow: "auto",
-          background: "#0f172a",
-          color: "#e5e7eb",
-          padding: "1rem",
-          borderRadius: 8,
-          width: "100%",
-        }}
-      >
-        {sdkSnippet}
-      </pre>
-      <ul
-        style={{
-          paddingLeft: 16,
-          margin: 0,
+          <Typography variant="caption" color="text.secondary">
+            HTML
+          </Typography>
+          <CopyButton getText={() => sdkSnippet} />
+        </Box>
+        <Box
+          component="pre"
+          sx={{
+            m: 0,
+            whiteSpace: "pre-wrap",
+            wordBreak: "break-word",
+            maxHeight: 360,
+            overflow: "auto",
+            bgcolor: "#0f172a",
+            color: "#e5e7eb",
+            p: "1rem",
+            fontSize: 12,
+            width: "100%",
+          }}
+        >
+          {sdkSnippet}
+        </Box>
+      </Box>
+      <Box
+        component="ul"
+        sx={{
+          pl: 2,
+          m: 0,
           fontSize: 12,
-          color: "rgba(0, 0, 0, 0.55)",
+          color: "text.secondary",
         }}
       >
-        <li>
-          {t("builder.formDetails.sdk.neutralHtml")}
-        </li>
+        <li>{t("builder.formDetails.sdk.neutralHtml")}</li>
         <li>
           {t("builder.formDetails.sdk.classesIntro")}
           <ul style={{ marginTop: 4, paddingLeft: 16 }}>
@@ -150,16 +164,16 @@ export const EmbedWithSDKTab = ({
         </li>
         <li>
           {t("builder.formDetails.sdk.docsIntro")}{" "}
-          <a
+          <Link
             href="https://github.com/abh3po/nostr-forms/blob/master/packages/formstr-sdk/README.md"
             target="_blank"
             rel="noreferrer"
           >
             {t("builder.formDetails.sdk.docsLink")}
-          </a>
+          </Link>
           .
         </li>
-      </ul>
-    </div>
+      </Box>
+    </Box>
   );
 };

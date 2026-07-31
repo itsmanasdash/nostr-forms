@@ -1,21 +1,19 @@
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
-import enUS from "antd/locale/en_US";
 import { getItem, LOCAL_STORAGE_KEYS, setItem } from "../utils/localStorage";
+import enResources from "./resources/en";
 
 type TranslationResources = typeof import("./resources/en").default;
 
 export interface SupportedLocale {
   code: string;
   label: string;
-  antdLocale: typeof enUS;
 }
 
 export const SUPPORTED_LOCALES: SupportedLocale[] = [
   {
     code: "en",
     label: "English",
-    antdLocale: enUS,
   },
 ];
 
@@ -51,19 +49,17 @@ export const resolveAppLocale = () => {
   return normalizeLocale(navigatorLocale);
 };
 
-export const getAntdLocaleForLanguage = (language?: string) => {
-  const normalized = normalizeLocale(language);
-  return (
-    SUPPORTED_LOCALES.find((item) => item.code === normalized)?.antdLocale ||
-    enUS
-  );
-};
-
 const LOCALE_LOADERS: Record<
   string,
   () => Promise<{ default: TranslationResources }>
 > = {
-  en: () => import("./resources/en"),
+  // `en` is the default AND fallback locale, so it is always loaded at init —
+  // code-splitting it saves nothing and, critically, breaks the downloadable
+  // single-file form (the standalone HTML inlines the main bundle but not lazy
+  // chunks, so a dynamic import 404s as `src_i18n_resources_en_ts.chunk.js`).
+  // Bundle it statically. Any future non-default locale can still be a dynamic
+  // `() => import(...)` for lazy loading.
+  en: () => Promise.resolve({ default: enResources }),
 };
 
 const loadLocaleResources = async (locale: string) => {

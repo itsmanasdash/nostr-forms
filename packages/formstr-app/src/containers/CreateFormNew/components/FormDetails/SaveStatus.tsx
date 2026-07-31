@@ -1,7 +1,13 @@
-import { Spin, Typography, Button } from "antd";
+import {
+  Box,
+  Button,
+  Chip,
+  CircularProgress,
+  Typography,
+} from "@mui/material";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import RadioButtonUncheckedRoundedIcon from "@mui/icons-material/RadioButtonUncheckedRounded";
 import { useTranslation } from "react-i18next";
-
-const { Text } = Typography;
 
 export const SaveStatus = ({
   savedLocally,
@@ -16,32 +22,69 @@ export const SaveStatus = ({
 }) => {
   const { t } = useTranslation();
   return (
-    <div className="save-status">
-      <div>
-        {t("builder.formDetails.savedLocally")} {savedLocally ? "✅" : "❌"}
-      </div>
-      {userPub ? (
-        <div className="nostr-save-status">
-          {!savedOnNostr ? (
-            <div className="saving-indicator">
-              <Text>{t("builder.formDetails.savingToProfile")}</Text>
-              <Spin size="small" style={{ marginLeft: 4 }} />
-            </div>
+    <Box
+      className="save-status"
+      sx={{
+        py: 1.5,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 1,
+      }}
+    >
+      <Chip
+        size="small"
+        variant="outlined"
+        color={savedLocally ? "success" : "default"}
+        icon={
+          savedLocally ? (
+            <CheckCircleRoundedIcon />
           ) : (
-            <div>
-              {t("builder.formDetails.savedToProfile")}{" "}
-              {savedOnNostr ? "✅" : "❌"}
-            </div>
+            <RadioButtonUncheckedRoundedIcon />
+          )
+        }
+        label={t("builder.formDetails.savedLocally")}
+      />
+
+      {userPub ? (
+        <Box className="nostr-save-status">
+          {!savedOnNostr ? (
+            <Chip
+              size="small"
+              variant="outlined"
+              icon={<CircularProgress size={12} thickness={5} />}
+              label={t("builder.formDetails.savingToProfile")}
+            />
+          ) : (
+            <Chip
+              size="small"
+              variant="outlined"
+              color="success"
+              icon={<CheckCircleRoundedIcon />}
+              label={t("builder.formDetails.savedToProfile")}
+            />
           )}
-        </div>
+        </Box>
       ) : (
-        <div className="login-prompt">
-          <Text>{t("builder.formDetails.loginToSave")}</Text>
-          <Button onClick={requestPubkey} className="ml-2">
+        <Box
+          className="login-prompt"
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 1,
+            mt: 0.5,
+          }}
+        >
+          <Typography variant="body2" color="text.secondary">
+            {t("builder.formDetails.loginToSave")}
+          </Typography>
+          <Button variant="outlined" size="small" onClick={requestPubkey}>
             {t("common.actions.login")}
           </Button>
-        </div>
+        </Box>
       )}
-    </div>
+    </Box>
   );
 };

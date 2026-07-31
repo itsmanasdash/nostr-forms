@@ -1,5 +1,5 @@
 import React from "react";
-import { Input } from "antd";
+import { TextField } from "@mui/material";
 import useFormBuilderContext from "../../containers/CreateFormNew/hooks/useFormBuilderContext";
 
 type Props = {
@@ -18,6 +18,8 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
   value,
   onChange,
   placeholder,
+  minRows,
+  maxRows,
   fontSize,
   className,
   disabled,
@@ -35,13 +37,31 @@ export const ColorfulMarkdownTextarea: React.FC<Props> = ({
       className={className}
       style={{ display: "flex", flexDirection: "column" }}
     >
-      <Input.TextArea
+      <TextField
+        multiline
+        fullWidth
         value={value}
-        style={{ fontSize: fontSize, color: globalColor }}
+        minRows={minRows}
+        maxRows={maxRows}
         onChange={handleTextChange}
         placeholder={placeholder}
         disabled={disabled}
-        autoSize
+        variant="standard"
+        slotProps={{
+          input: {
+            // Builder inline-editing look: no box, no padding, type-over text
+            // (matches the old borderless antd TextArea the wrappers styled).
+            disableUnderline: true,
+            sx: {
+              p: 0,
+              fontSize: fontSize ?? "inherit",
+              color: globalColor,
+              backgroundColor: "transparent",
+              "&.Mui-focused": { backgroundColor: "transparent" },
+            },
+          },
+        }}
+        sx={{ p: 0 }}
       />
     </div>
   );

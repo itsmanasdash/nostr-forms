@@ -9,10 +9,9 @@ import {
 } from "nostr-tools";
 import { AccessRequest, IWrap } from "./types";
 import { nip44Encrypt } from "./utils";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { getDefaultRelays } from "./common";
-import { sha256 } from "@noble/hashes/sha256";
-import { pool } from "../pool";
+import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils.js";
+import { getDefaultRelays, customPublish } from "./common";
+import { sha256 } from "@noble/hashes/sha2.js";
 
 const now = () => Math.round(Date.now() / 1000);
 
@@ -62,7 +61,7 @@ const createWrap = (
 ) => {
   const randomKey = generateSecretKey();
   let aliasPubKey = bytesToHex(
-    sha256(`${30168}:${eventAuthor}:${d_tag}:${recipientPublicKey}`)
+    sha256(utf8ToBytes(`${30168}:${eventAuthor}:${d_tag}:${recipientPublicKey}`))
   );
   // console.log("Alias pubkey created is", aliasPubKey);
   return finalizeEvent(
@@ -83,7 +82,7 @@ const createWrap = (
 const sendToUserRelays = async (wrap: Event, pubkey: string) => {
   const defaultRelays = getDefaultRelays();
   // console.log("Sending event to relays", defaultRelays, wrap);
-  let messages = await Promise.allSettled(pool.publish(defaultRelays, wrap));
+  let messages = await Promise.allSettled(customPublish(defaultRelays, wrap));
   // console.log("Relay replies", messages);
 };
 
@@ -170,7 +169,7 @@ export const acceptAccessRequests = async (
   newFormEvent.created_at = Math.floor(Date.now() / 1000);
   let finalEvent = finalizeEvent(newFormEvent, hexToBytes(signingKey));
   console.log("FINAL EDITED EVENT IS", finalEvent);
-  let a = await Promise.allSettled(pool.publish(defaultRelays, finalEvent));
+  let a = await Promise.allSettled(customPublish(defaultRelays, finalEvent));
   console.log("Published!!!", a);
   await sendWraps(wraps);
 };

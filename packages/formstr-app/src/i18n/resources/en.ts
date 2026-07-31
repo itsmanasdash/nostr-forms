@@ -55,7 +55,41 @@ const resources = {
       invalidUrl: "Invalid URL",
       invalidFormUrl: "Invalid form URL",
       noSupportedRelays: "No relays configured. Add one to get started!",
+      userMenu: "User menu",
     },
+  },
+  accounts: {
+    title: "Accounts",
+    addAccount: "Add account",
+    methods: {
+      extension: "Extension",
+      nip46: "Remote signer",
+      ncryptsec: "Key",
+      android: "Android signer",
+    },
+    removeTitle: "Remove this account?",
+    removeBody:
+      "This removes the account from this device. You can add it back anytime by signing in again.",
+    removeBodyNcryptsec:
+      "This removes the account from this device. Make sure you've saved your encrypted key (ncryptsec) somewhere safe — without it you won't be able to access this account again.",
+    removeAction: "Remove",
+    unlockTitle: "Unlock account",
+    unlockBody: "Enter the passphrase for {{npub}} to switch to it.",
+    passphrasePlaceholder: "Passphrase",
+    unlockAction: "Unlock",
+    unlockFailed: "Wrong passphrase. Try again.",
+    unencryptedWarningTitle: "Local forms aren't encrypted",
+    unencryptedWarningBody:
+      "Forms saved on this device aren't encrypted yet — they'll be visible to every account you add here. You can enable encryption from this menu first, or continue anyway.",
+    continueAnyway: "Continue anyway",
+  },
+  notifications: {
+    title: "Notifications",
+    bellLabel: "Notifications ({{count}} unread)",
+    markAllRead: "Mark all as read",
+    empty: "No notifications yet",
+    responseText: 'New response on "{{formName}}"',
+    shareText: '"{{formName}}" was shared with you',
   },
   header: {
     help: "Help",
@@ -101,7 +135,11 @@ const resources = {
       pasteUri: "Paste URI",
       qrCode: "QR Code",
       enterBunkerUri: "Enter bunker URI",
-      usingRelay: "Using relay.nsec.app for communication",
+      relaysPlaceholder: "Relay(s), comma-separated",
+      usingRelay: "Scan with your signer app to connect",
+      regenerate: "Generate QR",
+      generatingQr: "Generating QR code...",
+      enterRelayError: "Please enter at least one relay.",
       connected: "Connected to Remote Signer",
       enterBunkerUriError: "Please enter a bunker URI.",
       connectionFailed: "Connection failed.",
@@ -251,6 +289,7 @@ const resources = {
       myForms: "My forms",
       drafts: "Drafts",
       purchases: "Purchases",
+      submissions: "My submissions",
     },
     import: "Import",
     localEmpty:
@@ -261,6 +300,15 @@ const resources = {
       "You have encrypted forms stored on this device. Login to access them.",
     encryptedFormsFor:
       "You have forms encrypted for {{npub}}. Login with that key to access them.",
+    submissionsEmpty:
+      "No submissions yet. Forms you fill out will show up here.",
+    submissionsEmptyAction: "Browse Public Forms",
+    submissionsColumns: {
+      form: "Form",
+      submittedAt: "Submitted on",
+      submittedAs: "Submitted as",
+      anonymous: "Anonymous",
+    },
   },
   publicForms: {
     recentlyPosted: "Recently Posted",
@@ -327,6 +375,7 @@ const resources = {
         anonymous: "Submit Anonymously",
         asYourself: "Submit As Yourself",
         updateResponse: "Update Response",
+        moreOptions: "More submit options",
       },
       validating: "Validating...",
       submitting: "Submitting...",
@@ -351,6 +400,7 @@ const resources = {
       clearSelection: "Clear selection",
       signatureFailed: "Signature failed.",
       signatureDate: "Signature Date",
+      signatureKind: "Event Kind",
       signing: "Signing...",
       attachSignature: "Attach Signature",
       signatureAttached: "Signature Attached",
@@ -481,14 +531,21 @@ const resources = {
     quickActions: "Quick actions",
     viewResponses: "View Responses",
     openForm: "Open Form",
+    copyLink: "Copy form link",
+    linkCopied: "Link copied",
     details: "Details",
+    storedLocally: "Encrypted — stored on this device",
+    onDevice: "On device",
     noPurchases: "No purchases found.",
     url: "URL",
     urlExpiresOn: "URL expires on",
     never: "Never",
     delete: {
       title: "Are you sure you want to delete this form from your device?",
+      titleRelay: "Are you sure you want to delete this form?",
       irreversible: "This action is irreversible.",
+      irreversibleRelay:
+        "This publishes a deletion request to the relays and is irreversible. Already-submitted responses are not removed.",
       failed: "Failed to delete form.",
     },
   },
@@ -674,7 +731,6 @@ const resources = {
       savingToProfile: "Saving to nostr profile...",
       loginToSave: "Login to save to your profile",
       sdk: {
-        stylingTitle: "Styling & customization",
         intro: "Start by copying the below snippet into your html!",
         neutralHtml:
           "The SDK renders neutral HTML — you control layout and appearance via CSS.",
@@ -839,6 +895,7 @@ const resources = {
     signatureSettings: {
       eventKind: "Event Kind",
       editableContent: "Editable Content",
+      editableKind: "Editable Kind",
       prefilledContent: "Prefilled Content",
       prefilledPlaceholder: "Default content to sign",
       editableCreatedAt: "Editable Created At",

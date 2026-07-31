@@ -1,23 +1,28 @@
 import {
-  Form,
-  Typography,
-  Steps,
+  Box,
   Button,
-  Space,
-  Progress,
   Card,
-} from "antd";
-import { useState } from "react";
+  CardContent,
+  LinearProgress,
+  Step,
+  StepButton,
+  Stepper,
+  Typography,
+} from "@mui/material";
+import KeyboardArrowLeftIcon from "@mui/icons-material/KeyboardArrowLeft";
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight";
+import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
+import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
+import { useEffect, useRef, useState } from "react";
 import { FormFields } from "./FormFields";
 import { Field, Tag } from "../../nostr/types";
 import FillerStyle from "./formFiller.style";
 import FormBanner from "../../components/FormBanner";
 import { IFormSettings } from "../CreateFormNew/components/FormSettings/types";
-import { SectionData } from "../CreateFormNew/providers/FormBuilder/typeDefs";
+import { createContentFlow, stepClickAction } from "./utils/contentFlow";
 import { Link } from "react-router-dom";
 import { isMobile } from "../../utils/utility";
 import { ReactComponent as CreatedUsingFormstr } from "../../Images/created-using-formstr.svg";
-import { LeftOutlined, RightOutlined } from "@ant-design/icons";
 import SafeMarkdown from "../../components/SafeMarkdown";
 import {
   AutoSaveIndicator,
@@ -25,14 +30,38 @@ import {
   SaveStatus,
 } from "./components";
 import { useTranslation } from "react-i18next";
-
-const { Text, Title } = Typography;
-const { Step } = Steps;
+import { FieldErrors, FormValues, validateFields } from "./validations";
 
 interface FormRendererProps {
   formTemplate: Tag[];
-  form: any;
+  /**
+   * Legacy antd Form instance. Accepted for backward compatibility with
+   * callers that still create one (CreateFormNew/EditForm/ResponsesNew) —
+   * the renderer no longer uses it; state lives in `values`/`errors` (or the
+   * internal fallback below).
+   */
+  form?: any;
   onInput: (questionId: string, answer: string, message?: string) => void;
+  /**
+   * Controlled field values ([answer, message] tuples). When omitted the
+   * renderer self-manages values seeded from `initialValues` (preview and
+   * read-only consumers don't need a container).
+   */
+  values?: FormValues;
+  /** Controlled field errors; falls back to internal state when omitted. */
+  errors?: FieldErrors;
+  /**
+   * External per-step validation hook. Receives the current step's fields,
+   * returns true when they are valid (and is expected to update the
+   * controlled `errors`). When omitted, the renderer validates internally.
+   */
+  onValidateFields?: (fields: Field[]) => boolean;
+  /**
+   * Reports the fields of each step as it renders (all steps at once in
+   * read-only mode). Replicates antd's registered-fields semantics so the
+   * container can build responses for every field the user has seen.
+   */
+  onFieldsRendered?: (fields: Field[]) => void;
   footer?: React.ReactNode;
   hideTitleImage?: boolean;
   hideDescription?: boolean;
@@ -55,20 +84,13 @@ interface FormRendererProps {
   onClearForm?: () => void;
 }
 
-// Content item can be either a section or individual questions
-interface ContentItem {
-  type: "section" | "questions";
-  id: string;
-  title: string;
-  description?: string;
-  fields: Field[];
-  sectionData?: SectionData;
-}
-
 export const FormRenderer: React.FC<FormRendererProps> = ({
   formTemplate,
-  form,
   onInput,
+  values: valuesProp,
+  errors: errorsProp,
+  onValidateFields,
+  onFieldsRendered,
   footer,
   hideTitleImage,
   hideDescription,
@@ -93,6 +115,16 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   ) as IFormSettings;
   const fields = formTemplate.filter((tag) => tag[0] === "field") as Field[];
 
+  // Values/errors: controlled when the parent passes them (the filler
+  // container does), self-managed otherwise (previews, read-only views).
+  const isControlled = valuesProp !== undefined;
+  const [internalValues, setInternalValues] = useState<FormValues>(
+    () => (initialValues as FormValues) ?? {},
+  );
+  const [internalErrors, setInternalErrors] = useState<FieldErrors>({});
+  const values = valuesProp ?? internalValues;
+  const errors = errorsProp ?? internalErrors;
+
   // Section state management
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<Set<number>>(new Set());
@@ -100,63 +132,7 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   const sections = settings.sections || [];
   const enableSections = !!sections.length;
 
-  // Create mixed content flow
-  const createContentFlow = (): ContentItem[] => {
-    if (!enableSections) {
-      return [
-        {
-          type: "questions",
-          id: "all-questions",
-          title: t("common.labels.formQuestions"),
-          fields: fields,
-        },
-      ];
-    }
-
-    const contentItems: ContentItem[] = [];
-    const sectionedQuestionIds = new Set(
-      sections.flatMap((section: SectionData) => section.questionIds),
-    );
-
-    // Get unsectioned questions that appear before any section
-    const unsectionedFields = fields.filter(
-      (field) => !sectionedQuestionIds.has(field[1]),
-    );
-
-    if (unsectionedFields.length > 0) {
-      // Group unsectioned questions at the beginning
-      contentItems.push({
-        type: "questions",
-        id: "unsectioned-questions",
-        title: t("common.labels.generalQuestions"),
-        description: t("common.labels.generalQuestionsDescription"),
-        fields: unsectionedFields,
-      });
-    }
-
-    // Add sections
-    sections.forEach((section: SectionData) => {
-      const sectionQuestionIds = new Set(section.questionIds);
-      const sectionFields = fields.filter((field) =>
-        sectionQuestionIds.has(field[1]),
-      );
-
-      if (sectionFields.length > 0) {
-        contentItems.push({
-          type: "section",
-          id: section.id,
-          title: section.title,
-          description: section.description,
-          fields: sectionFields,
-          sectionData: section,
-        });
-      }
-    });
-
-    return contentItems;
-  };
-
-  const contentItems = createContentFlow();
+  const contentItems = createContentFlow(fields, sections, t);
   const currentItem = contentItems[currentStep];
   const isLastStep = currentStep >= contentItems.length - 1;
   const showStepper = enableSections && contentItems.length > 1;
@@ -167,24 +143,69 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       contentItems.length) *
     100;
 
+  // Report rendered fields (antd registered-fields semantics): the fields of
+  // each step as it is visited, or every field at once in read-only mode.
+  const onFieldsRenderedRef = useRef(onFieldsRendered);
+  onFieldsRenderedRef.current = onFieldsRendered;
+  useEffect(() => {
+    const report = onFieldsRenderedRef.current;
+    if (!report) return;
+    if (readOnly) {
+      contentItems.forEach((item) => report(item.fields));
+    } else if (currentItem) {
+      report(currentItem.fields);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentStep, readOnly, formTemplate]);
+
+  const handleFieldInput = (
+    questionId: string,
+    answer: string,
+    message?: string,
+  ) => {
+    if (!isControlled) {
+      setInternalValues((prev) => ({
+        ...prev,
+        [questionId]:
+          !answer || answer === ""
+            ? null
+            : ([answer, message] as [string, string | undefined]),
+      }));
+      setInternalErrors((prev) => {
+        if (!(questionId in prev)) return prev;
+        const next = { ...prev };
+        delete next[questionId];
+        return next;
+      });
+    }
+    onInput(questionId, answer, message);
+  };
+
   // Validate current step
-  const validateCurrentStep = async (): Promise<boolean> => {
+  const validateCurrentStep = (): boolean => {
     if (isPreview) {
       return true;
     }
-
-    try {
-      const fieldNames = currentItem?.fields.map((field) => field[1]) || [];
-      await form.validateFields(fieldNames);
-      return true;
-    } catch (error) {
-      return false;
+    const stepFields = currentItem?.fields || [];
+    if (onValidateFields) {
+      return onValidateFields(stepFields);
     }
+    const stepErrors = validateFields(stepFields, values);
+    setInternalErrors((prev) => {
+      const next = { ...prev };
+      stepFields.forEach((field) => {
+        const error = stepErrors[field[1]];
+        if (error) next[field[1]] = error;
+        else delete next[field[1]];
+      });
+      return next;
+    });
+    return Object.keys(stepErrors).length === 0;
   };
 
   // Navigation handlers
-  const handleNext = async () => {
-    const isValid = await validateCurrentStep();
+  const handleNext = () => {
+    const isValid = validateCurrentStep();
     if (isValid) {
       setCompletedSteps((prev) => new Set([...prev, currentStep]));
       setCurrentStep((prev) => prev + 1);
@@ -197,11 +218,12 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
     }
   };
 
-  const handleStepClick = async (stepIndex: number) => {
-    if (stepIndex < currentStep || completedSteps.has(stepIndex)) {
+  const handleStepClick = (stepIndex: number) => {
+    const action = stepClickAction(stepIndex, currentStep, completedSteps);
+    if (action === "jump") {
       setCurrentStep(stepIndex);
-    } else if (stepIndex === stepIndex + 1) {
-      await handleNext();
+    } else if (action === "validate") {
+      handleNext();
     }
   };
 
@@ -225,12 +247,32 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
         display: "flex",
         alignItems: "center",
         justifyContent: "flex-end",
+        flexWrap: "wrap",
         gap: 12,
+        width: "100%",
+        maxWidth: "100%",
+        minWidth: 0,
+        boxSizing: "border-box",
       }}
     >
       {renderAutoSaveControls()}
       {footer}
     </div>
+  );
+
+  const renderFormFields = (itemFields: Field[]) => (
+    <FormFields
+      fields={itemFields}
+      handleInput={handleFieldInput}
+      disabled={disabled || readOnly}
+      values={values}
+      errors={errors}
+      formSettings={settings}
+      formAuthorPubkey={formAuthorPubkey}
+      formEditKey={formEditKey}
+      responderSecretKey={responderSecretKey}
+      uploaderPubkey={uploaderPubkey}
+    />
   );
 
   // Read-only view: render every section/question at once (no stepper), so a
@@ -240,26 +282,24 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
       {contentItems.map((item) => (
         <div key={item.id}>
           {enableSections && (
-            <Card style={{ marginBottom: 16 }}>
-              <Title level={5}>{item.title}</Title>
-              {item.description && (
-                <Text type="secondary">
-                  <SafeMarkdown>{item.description}</SafeMarkdown>
-                </Text>
-              )}
+            <Card variant="outlined" sx={{ mb: 2 }}>
+              <CardContent sx={{ "&:last-child": { pb: 2 } }}>
+                <Typography variant="h6" component="h3">
+                  {item.title}
+                </Typography>
+                {item.description && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    component="div"
+                  >
+                    <SafeMarkdown>{item.description}</SafeMarkdown>
+                  </Typography>
+                )}
+              </CardContent>
             </Card>
           )}
-          <FormFields
-            fields={item.fields}
-            handleInput={onInput}
-            disabled={disabled || readOnly}
-            values={initialValues}
-            formSettings={settings}
-            formAuthorPubkey={formAuthorPubkey}
-            formEditKey={formEditKey}
-            responderSecretKey={responderSecretKey}
-            uploaderPubkey={uploaderPubkey}
-          />
+          {renderFormFields(item.fields)}
         </div>
       ))}
     </div>
@@ -268,98 +308,93 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
   const renderSteppedForm = () => (
     <div>
       {showStepper && (
-        <div style={{ marginBottom: 24 }}>
-          <Progress
-            percent={Math.round(progress)}
-            showInfo={false}
-            strokeColor="#FF5733"
+        <Box sx={{ mb: 3 }} className="section-progress">
+          <LinearProgress
+            variant="determinate"
+            value={Math.round(progress)}
+            sx={{ mb: 0.5 }}
           />
-          <Text type="secondary" style={{ fontSize: "12px" }}>
+          <Typography variant="caption" color="text.secondary">
             {t("common.labels.step", {
               current: currentStep + 1,
               total: contentItems.length,
             })}
-          </Text>
-        </div>
+          </Typography>
+        </Box>
       )}
 
       {showStepper && (
-        <Steps
-          current={currentStep}
-          size="small"
-          style={{ marginBottom: 32 }}
-          direction={isMobile() ? "vertical" : "horizontal"}
+        <Stepper
+          activeStep={currentStep}
+          nonLinear
+          orientation={isMobile() ? "vertical" : "horizontal"}
+          className="section-steps"
+          sx={{ mb: 4 }}
         >
           {contentItems.map((item, index) => (
-            <Step
-              key={item.id}
-              title={item.title}
-              description={item.description}
-              status={
-                completedSteps.has(index)
-                  ? "finish"
-                  : index === currentStep
-                  ? "process"
-                  : "wait"
-              }
-              onClick={() => handleStepClick(index)}
-              style={{ cursor: "pointer" }}
-            />
+            <Step key={item.id} completed={completedSteps.has(index)}>
+              <StepButton onClick={() => handleStepClick(index)}>
+                {item.title}
+              </StepButton>
+            </Step>
           ))}
-        </Steps>
+        </Stepper>
       )}
 
       {/* Current Step Content */}
       {currentItem && (
         <>
           {showStepper && (
-            <Card style={{ marginBottom: 24 }}>
-              <Title level={4}>{currentItem.title}</Title>
-              {currentItem.description && (
-                <Text type="secondary">
-                  <SafeMarkdown>{currentItem.description}</SafeMarkdown>
-                </Text>
-              )}
-              {currentItem.type === "questions" && (
-                <Text
-                  type="secondary"
-                  style={{ display: "block", marginTop: 8 }}
-                >
-                  {t("common.labels.questionsInStep", {
-                    count: currentItem.fields.length,
-                  })}
-                </Text>
-              )}
+            <Card variant="outlined" className="section-header" sx={{ mb: 3 }}>
+              <CardContent sx={{ "&:last-child": { pb: 2 } }}>
+                <Typography variant="h5" component="h2" gutterBottom>
+                  {currentItem.title}
+                </Typography>
+                {currentItem.description && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    component="div"
+                  >
+                    <SafeMarkdown>{currentItem.description}</SafeMarkdown>
+                  </Typography>
+                )}
+                {currentItem.type === "questions" && (
+                  <Typography
+                    variant="body2"
+                    color="text.secondary"
+                    sx={{ display: "block", mt: 1 }}
+                  >
+                    {t("common.labels.questionsInStep", {
+                      count: currentItem.fields.length,
+                    })}
+                  </Typography>
+                )}
+              </CardContent>
             </Card>
           )}
 
           {/* Form Fields */}
-          <FormFields
-            fields={currentItem.fields}
-            handleInput={onInput}
-            disabled={disabled || readOnly}
-            values={initialValues}
-            formSettings={settings}
-            formAuthorPubkey={formAuthorPubkey}
-            formEditKey={formEditKey}
-            responderSecretKey={responderSecretKey}
-            uploaderPubkey={uploaderPubkey}
-          />
+          {renderFormFields(currentItem.fields)}
         </>
       )}
 
       {showStepper && (
-        <Space
-          style={{
-            marginTop: 24,
+        <Box
+          className="section-navigation"
+          sx={{
+            mt: 3,
             width: "100%",
+            display: "flex",
             justifyContent: "space-between",
+            alignItems: "center",
           }}
         >
           <Button
+            variant="outlined"
             onClick={handleBack}
             disabled={currentStep === 0}
-            icon={<LeftOutlined />}
+            startIcon={<KeyboardArrowLeftIcon />}
           >
             {t("common.actions.back")}
           </Button>
@@ -373,18 +408,21 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
               }}
             >
               {renderAutoSaveControls()}
-              <Button type="primary" onClick={handleNext}>
-                {t("common.actions.continue")} <RightOutlined />
+              <Button
+                variant="contained"
+                onClick={handleNext}
+                endIcon={<KeyboardArrowRightIcon />}
+              >
+                {t("common.actions.continue")}
               </Button>
             </div>
           ) : (
             renderFooterWithControls()
           )}
-        </Space>
+        </Box>
       )}
 
       {!showStepper && renderFooterWithControls()}
-
     </div>
   );
 
@@ -406,15 +444,25 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
           )}
           {!hideDescription && settings?.description && (
             <div className="form-description">
-              <Text style={{ color: settings.colors?.description ?? settings.colors?.global ?? settings.globalColor }}>
+              <Typography
+                component="div"
+                sx={{
+                  color:
+                    settings.colors?.description ??
+                    settings.colors?.global ??
+                    settings.globalColor,
+                }}
+              >
                 <SafeMarkdown>{settings.description}</SafeMarkdown>
-              </Text>
+              </Typography>
             </div>
           )}
 
-          <Form form={form} onFinish={() => {}} className="with-description">
-            {readOnly ? renderReadOnlyForm() : renderSteppedForm()}
-          </Form>
+          <div className="with-description">
+            <LocalizationProvider dateAdapter={AdapterDayjs}>
+              {readOnly ? renderReadOnlyForm() : renderSteppedForm()}
+            </LocalizationProvider>
+          </div>
         </div>
 
         {formstrBranding && (
@@ -427,9 +475,9 @@ export const FormRenderer: React.FC<FormRendererProps> = ({
                 href="https://github.com/abhay-raizada/nostr-forms"
                 className="foss-link"
               >
-                <Text className="text-style">
+                <Typography className="text-style">
                   {t("filler.branding")}
-                </Text>
+                </Typography>
               </a>
             )}
           </div>

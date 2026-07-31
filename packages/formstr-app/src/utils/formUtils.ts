@@ -7,8 +7,8 @@ import {
   nip19,
   getPublicKey,
 } from "nostr-tools";
-import { bytesToHex, hexToBytes } from "@noble/hashes/utils";
-import { sha256 } from "@noble/hashes/sha256";
+import { bytesToHex, hexToBytes, utf8ToBytes } from "@noble/hashes/utils.js";
+import { sha256 } from "@noble/hashes/sha2.js";
 import { naddrUrl } from "./utility";
 import { AddressPointer } from "nostr-tools/nip19";
 import { fetchFormTemplate } from "../nostr/fetchFormTemplate";
@@ -16,7 +16,7 @@ import { signerManager } from "../signer";
 import { encodeNKeys } from "./nkeys";
 import { getDefaultRelays } from "../nostr/common";
 import { Tag } from "../nostr/types";
-import { pool } from "../pool";
+import { fetchMany } from "../dataLayer";
 
 export const createFormSpecFromTemplate = (
   template: FormTemplate,
@@ -39,14 +39,14 @@ export const fetchKeys = async (
   const signer = await signerManager.getSigner();
   const defaultRelays = getDefaultRelays();
   const aliasPubKey = bytesToHex(
-    sha256(`${30168}:${formAuthor}:${formId}:${userPub}`),
+    sha256(utf8ToBytes(`${30168}:${formAuthor}:${formId}:${userPub}`)),
   );
   const giftWrapsFilter = {
     kinds: [1059],
     "#p": [aliasPubKey],
   };
 
-  const accessKeyEvents = await pool.querySync(defaultRelays, giftWrapsFilter);
+  const accessKeyEvents = await fetchMany([giftWrapsFilter], defaultRelays);
   let keys: Tag[] | undefined;
   await Promise.allSettled(
     accessKeyEvents.map(async (keyEvent: Event) => {

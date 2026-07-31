@@ -1,6 +1,6 @@
 import { test, expect, Locator, Page } from "@playwright/test";
 import { generateSecretKey, getPublicKey, nip19 } from "nostr-tools";
-import { bytesToHex } from "@noble/hashes/utils";
+import { bytesToHex } from "@noble/hashes/utils.js";
 import {
   publishToLocalRelay,
   LOCAL_RELAY_URL,
@@ -139,31 +139,31 @@ function q(page: Page, label: string): Locator {
     .filter({ has: page.getByText(label, { exact: true }) });
 }
 
-/** The most recently opened antd picker popup (date/time panels are portaled). */
-function openPanel(page: Page): Locator {
-  return page.locator(".ant-picker-dropdown").last();
-}
-
-/** Open a date/datetime picker and select the first available day (and confirm). */
-async function pickDate(page: Page, scope: Locator, withTime = false) {
-  await scope.locator(".ant-picker").click();
-  const panel = openPanel(page);
-  await panel
-    .locator(".ant-picker-cell-in-view .ant-picker-cell-inner")
-    .first()
-    .click();
-  if (withTime) await panel.locator(".ant-picker-ok button").click();
-}
-
-/** Open a time picker and select the first cell in each column. */
-async function pickTime(page: Page, scope: Locator) {
-  await scope.locator(".ant-picker").click();
-  const panel = openPanel(page);
-  const columns = panel.locator(".ant-picker-time-panel-column");
-  const count = await columns.count();
-  for (let i = 0; i < count; i++) {
-    await columns.nth(i).locator(".ant-picker-time-panel-cell-inner").first().click();
+/**
+ * Type into a MUI X desktop picker's sections. Uses DOM focus rather than a
+ * mouse click so the calendar/time popover never opens; sections auto-advance
+ * as digits become unambiguous.
+ */
+async function typePickerSections(page: Page, scope: Locator, parts: string[]) {
+  const firstSection = scope.getByRole("spinbutton").first();
+  await firstSection.focus();
+  for (const part of parts) {
+    await page.keyboard.type(part);
   }
+}
+
+/** Fill a DatePicker (MM/DD/YYYY) or, with withTime, the DateTimePicker ("YYYY-MM-DD HH:mm:ss"). */
+async function pickDate(page: Page, scope: Locator, withTime = false) {
+  if (withTime) {
+    await typePickerSections(page, scope, ["2024", "01", "15", "09", "30", "00"]);
+  } else {
+    await typePickerSections(page, scope, ["01", "15", "2024"]);
+  }
+}
+
+/** Fill the TimePicker ("h:mm A"): 9:30 AM. */
+async function pickTime(page: Page, scope: Locator) {
+  await typePickerSections(page, scope, ["9", "30", "A"]);
 }
 
 test("every field type can be filled and round-trips to responses", async ({
@@ -224,19 +224,38 @@ test("every field type can be filled and round-trips to responses", async ({
   await q(page, "Radio Q").getByText(V.radio).click();
   await q(page, "Checkbox Q").getByText(V.checkbox).click();
 
-  await q(page, "Dropdown Q").locator(".ant-select-selector").click();
-  await page.locator(".ant-select-item-option", { hasText: V.dropdown }).click();
+  await q(page, "Dropdown Q").getByRole("combobox").click();
+  await page.getByRole("option", { name: V.dropdown }).click();
 
   await pickDate(page, q(page, "Date Q"));
   await pickDate(page, q(page, "DOB Q"));
   await pickTime(page, q(page, "Time Q"));
   await pickDate(page, q(page, "DateTime Q"), true);
 
-  // Grids: pick a cell in each row.
+  // Grids: pick a cell in each row, and confirm it actually renders checked
+  // (not just that the click landed — a rendering gap would leave this
+  // unchecked even though the click handler ran).
+  //
+  // SCGrid is radio-based (single choice per row), so one column per row.
+  // MCGrid is checkbox-based and is specifically supposed to allow more than
+  // one column per row — RowA checks both ColA and ColB to exercise that,
+  // while RowB stays single-column so the test also confirms a row that
+  // *isn't* multi-selected doesn't accidentally pick up extra columns.
   for (const rowName of ["RowA", "RowB"]) {
-    await q(page, "SCGrid Q").getByRole("row", { name: rowName }).getByRole("radio").first().check();
-    await q(page, "MCGrid Q").getByRole("row", { name: rowName }).getByRole("checkbox").first().check();
+    const scCell = q(page, "SCGrid Q").getByRole("row", { name: rowName }).getByRole("radio").first();
+    await scCell.check();
+    await expect(scCell).toBeChecked();
   }
+
+  const mcRowA = q(page, "MCGrid Q").getByRole("row", { name: "RowA" }).getByRole("checkbox");
+  await mcRowA.nth(0).check();
+  await mcRowA.nth(1).check();
+  await expect(mcRowA.nth(0)).toBeChecked();
+  await expect(mcRowA.nth(1)).toBeChecked();
+
+  const mcRowB = q(page, "MCGrid Q").getByRole("row", { name: "RowB" }).getByRole("checkbox").first();
+  await mcRowB.check();
+  await expect(mcRowB).toBeChecked();
 
   // Rating: click the 3rd star.
   await q(page, "Rating Q").getByRole("img").nth(2).click();
@@ -276,4 +295,19 @@ test("every field type can be filled and round-trips to responses", async ({
       timeout: 20_000,
     });
   }
+
+  // SCGrid picked ColA in every row (radios only allow one), rendering as
+  // "RowA: ColA | RowB: ColA" (see ResponseUtils.getResponseLabels).
+  await expect(
+    page.getByText("RowA: ColA | RowB: ColA", { exact: false }),
+  ).toHaveCount(1, { timeout: 20_000 });
+
+  // MCGrid picked both columns on RowA and one on RowB. GridFiller sorts a
+  // row's selected column IDs (random per run) before joining, so ColA/ColB
+  // can land in either order — this is the assertion that actually catches a
+  // checkbox grid silently collapsing to single-selection, without being
+  // fragile to that ordering.
+  await expect(
+    page.getByText(/RowA: (ColA, ColB|ColB, ColA) \| RowB: ColA/, { exact: false }),
+  ).toHaveCount(1, { timeout: 20_000 });
 });

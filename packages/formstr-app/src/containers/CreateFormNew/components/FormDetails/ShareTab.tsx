@@ -1,9 +1,7 @@
 import { UrlBox } from "./UrlBox";
-import { ReactComponent as Success } from "../../../../Images/success.svg";
-import { Typography } from "antd";
+import CheckCircleRoundedIcon from "@mui/icons-material/CheckCircleRounded";
+import { Box, Typography } from "@mui/material";
 import { SupportUsButton } from "@formstr/support-us-button";
-
-const { Text } = Typography;
 
 export const ShareTab = ({
   formUrl,
@@ -13,26 +11,43 @@ export const ShareTab = ({
   responsesUrl?: string;
 }) => {
   return (
-    <div className="share-links" style={{ textAlign: "center" }}>
-      <Success />
+    <Box
+      className="share-links"
+      sx={{
+        wordWrap: "break-word",
+        overflowWrap: "anywhere",
+      }}
+    >
+      {/* Compact confirmation header — replaces the oversized success badge. */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 1,
+          mb: 2.5,
+        }}
+      >
+        <CheckCircleRoundedIcon color="success" fontSize="small" />
+        <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>
+          Your form is ready to share
+        </Typography>
+      </Box>
 
-      <div style={{ marginTop: 12 }}>
-        <UrlBox label="Live Form URL" url={formUrl} />
+      <UrlBox label="Live Form URL" url={formUrl} />
 
-        {responsesUrl && (
-          <>
-            <UrlBox
-              label="Responses URL"
-              url={responsesUrl}
-              warning="Anyone with this link can view responses to this form. Share it carefully."
-            />
-          </>
-        )}
-      </div>
+      {responsesUrl && (
+        <UrlBox
+          label="Responses URL"
+          url={responsesUrl}
+          warning="Anyone with this link can view responses to this form. Share it carefully."
+        />
+      )}
 
-      <Text
-        type="secondary"
-        style={{ display: "block", marginTop: 20, fontSize: 12 }}
+      <Typography
+        variant="body2"
+        color="text.secondary"
+        sx={{ display: "block", textAlign: "center", mt: 2 }}
       >
         Enjoying Formstr?{" "}
         <SupportUsButton
@@ -40,7 +55,7 @@ export const ShareTab = ({
           type="link"
           style={{ fontSize: 12, padding: 0, height: "auto" }}
         />
-      </Text>
-    </div>
+      </Typography>
+    </Box>
   );
 };

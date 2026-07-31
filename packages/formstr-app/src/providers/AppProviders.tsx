@@ -1,26 +1,18 @@
-import { ConfigProvider } from "antd";
+import { CssBaseline, ThemeProvider as MuiThemeProvider } from "@mui/material";
 import React from "react";
-import { I18nextProvider, useTranslation } from "react-i18next";
-import i18n, { getAntdLocaleForLanguage } from "../i18n";
-
-const theme = {
-  token: {
-    fontFamily: "Anek Devanagari, ui-serif, Inter, ui-sans-serif",
-    colorPrimary: "#FF5733",
-    colorLink: "#FF5733",
-  },
-};
+import { I18nextProvider } from "react-i18next";
+import i18n from "../i18n";
+import { muiTheme } from "../theme/muiTheme";
+import { SnackbarProvider } from "./SnackbarProvider";
 
 const ThemedProviders = ({ children }: { children: React.ReactNode }) => {
-  const { i18n: instance } = useTranslation();
-
+  // MUI is the sole styling system: ui-rewrite-mui Phase 6 removed antd's
+  // ConfigProvider. All components take tokens from muiTheme.
   return (
-    <ConfigProvider
-      theme={theme}
-      locale={getAntdLocaleForLanguage(instance.language)}
-    >
-      {children}
-    </ConfigProvider>
+    <MuiThemeProvider theme={muiTheme}>
+      <CssBaseline />
+      <SnackbarProvider>{children}</SnackbarProvider>
+    </MuiThemeProvider>
   );
 };
 
