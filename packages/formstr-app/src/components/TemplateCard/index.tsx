@@ -13,9 +13,13 @@ const TemplateCard: React.FC<TemplateCardProps> = ({ template, onClick }) => {
       variant="outlined"
       onClick={() => onClick(template)}
       sx={{
-        width: 180,
-        height: 120,
-        m: 1,
+        // Desktop (sm+) keeps the original fixed 180x120 card with its own
+        // margin. Mobile fills the 2-col grid cell and auto-heights so a
+        // wrapped title + 2-line description never clips.
+        width: { xs: "100%", sm: 180 },
+        height: { xs: "auto", sm: 120 },
+        minHeight: { xs: 100, sm: 120 },
+        m: { xs: 0, sm: 1 },
         cursor: "pointer",
         transition: "border-color 0.2s ease-in-out",
         "&:hover": { borderColor: "primary.main" },
