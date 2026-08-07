@@ -12862,13 +12862,6 @@ which@^2.0.1:
   dependencies:
     isexe "^2.0.0"
 
-wllama-service@^2.0.4:
-  version "2.0.4"
-  resolved "https://registry.yarnpkg.com/wllama-service/-/wllama-service-2.0.4.tgz#45243aea59e4aaba99f417685393cbbafb14d2c1"
-  integrity sha512-ZHA1p+6gvBIjn2c4v14M1ITLiQECnu6Jvsad68mO4FAVeIulIVCdU3tzyi5v5sj4tzqlsxQqKwGYhZ6oTcp9pA==
-  dependencies:
-    "@wllama/wllama" "^3.5.1"
-
 wmf@~1.0.1:
   version "1.0.2"
   resolved "https://registry.npmjs.org/wmf/-/wmf-1.0.2.tgz"

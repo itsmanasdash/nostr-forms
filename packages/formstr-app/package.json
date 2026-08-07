@@ -81,7 +81,7 @@
     "webpack": "^5.64.4",
     "webpack-dev-server": "^4.6.0",
     "webpack-manifest-plugin": "^4.0.2",
-    "wllama-service": "^2.0.4",
+    "@wllama/wllama": "^3.5.1",
     "workbox-webpack-plugin": "^6.4.1",
     "xlsx": "^0.18.5"
   },
