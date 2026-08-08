@@ -4,16 +4,15 @@ import useFormBuilderContext from "../CreateFormNew/hooks/useFormBuilderContext"
 import { useEffect, useState } from "react";
 import { HEADER_MENU_KEYS } from "../CreateFormNew/components/Header/config";
 import { getPublicKey, nip19 } from "nostr-tools";
-import { hexToBytes } from "@noble/hashes/utils";
-import { Spin, Typography } from "antd";
+import { hexToBytes } from "@noble/hashes/utils.js";
+import { Box, CircularProgress, Typography } from "@mui/material";
 import { getFormSpec as formSpecFromEvent } from "../../utils/formUtils";
 import { useProfileContext } from "../../hooks/useProfileContext";
-import { LoadingOutlined } from "@ant-design/icons";
 import { AddressPointer } from "nostr-tools/nip19";
 import { FormRenderer } from "../FormFillerNew/FormRenderer";
 import { decodeNKeys } from "../../utils/nkeys";
 import { getDefaultRelays } from "../../nostr/common";
-import { pool } from "../../pool";
+import { fetchOne } from "../../dataLayer";
 
 function EditForm() {
   const { naddr } = useParams();
@@ -50,9 +49,9 @@ function EditForm() {
       "#d": [dTag],
       kinds: [30168],
     };
-    let formEvent = await pool.get(
+    let formEvent = await fetchOne(
+      [filter],
       Array.from(new Set([...(relays || []), ...getDefaultRelays()]) || []),
-      filter,
     );
     if (!formEvent) {
       setError("Form Not Found :(");
@@ -88,12 +87,12 @@ function EditForm() {
     };
   }, [initialized, initializeForm, saveDraft]);
 
-  if (error) return <Typography.Text>{error}</Typography.Text>;
+  if (error) return <Typography>{error}</Typography>;
 
   if (!initialized)
     return (
-      <div
-        style={{
+      <Box
+        sx={{
           position: "fixed",
           top: "50%",
           left: "50%",
@@ -104,22 +103,8 @@ function EditForm() {
           alignItems: "center",
         }}
       >
-        <Typography.Text
-          style={{
-            textAlign: "center",
-            display: "block",
-          }}
-        >
-          <Spin
-            indicator={
-              <LoadingOutlined
-                style={{ fontSize: 48, color: "#F7931A" }}
-                spin
-              />
-            }
-          />
-        </Typography.Text>
-      </div>
+        <CircularProgress size={48} />
+      </Box>
     );
 
   if (selectedTab === HEADER_MENU_KEYS.BUILDER) {

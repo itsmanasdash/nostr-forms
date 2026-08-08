@@ -2,65 +2,24 @@ import React, { useEffect, useRef, useState } from "react";
 import { StoredForm } from "./types";
 import axios from "../../../utils/axiosInstance";
 import { FormEventCard } from "../FormCards/FormEventCard";
-import { Typography, Skeleton } from "antd";
-import { pool } from "../../../pool";
-import { SubCloser } from "nostr-tools/abstract-pool";
+import { Box, Skeleton, Typography } from "@mui/material";
+import { subscribe, type Subscription } from "../../../dataLayer";
 import { Event } from "nostr-tools";
 import { useProfileContext } from "../../../hooks/useProfileContext";
 import { getDefaultRelays } from "../../../nostr/common";
 import { useTranslation } from "react-i18next";
-
-const { Text } = Typography;
 
 interface FormWithEvent {
   form: StoredForm;
   event: Event | null;
 }
 
-const pastelColors = [
-  "#ffd6e8", // pastel pink
-  "#d6f5d6", // pastel green
-  "#d6e0f5", // pastel blue
-  "#fff0b3", // pastel yellow
-  "#f5d6d6", // pastel red-ish
-];
-
-// Flair box component
-const Flair: React.FC<{
-  color: string;
-  children: React.ReactNode;
-  onClick?: () => void;
-  style?: React.CSSProperties;
-}> = ({ color, children, onClick, style }) => {
-  return (
-    <div
-      onClick={onClick}
-      style={{
-        backgroundColor: color,
-        borderRadius: 16,
-        padding: "6px 12px",
-        marginRight: 12,
-        marginTop: 8,
-        display: "inline-block",
-        cursor: onClick ? "pointer" : "default",
-        userSelect: "none",
-        fontWeight: 500,
-        paddingTop: 6,
-        boxShadow: "0 1px 3px rgba(0,0,0,0.1)", // subtle shadow
-        ...style,
-      }}
-    >
-      {children}
-    </div>
-  );
-};
-
 export const Purchases: React.FC = () => {
   const { t } = useTranslation();
   const [formsWithEvents, setFormsWithEvents] = useState<FormWithEvent[]>([]);
   const [nostrEvents, setNostrEvents] = useState<Event[]>([]);
   const { pubkey, userRelays } = useProfileContext();
-  const subCloserRef = useRef<SubCloser | null>(null);
+  const subCloserRef = useRef<Subscription | null>(null);
 
   // Step 1: Fetch stored forms
   useEffect(() => {
@@ -78,25 +37,21 @@ export const Purchases: React.FC = () => {
   useEffect(() => {
     if (!formsWithEvents.length) return;
     const useRelays = userRelays.length !== 0 ? userRelays : getDefaultRelays();
-    console.log("User relays", useRelays);
-    const filters = formsWithEvents.map(({ form }) => ({
+    const filter = {
       kinds: [30168],
-      authors: [form.pubkey],
-    }));
+      authors: formsWithEvents.map(({ form }) => form.pubkey),
+    };
 
-    console.log("Final filters are", filters, pool);
-    subCloserRef.current = pool.subscribeMany(useRelays, filters, {
-      onevent: (event: Event) => {
-        console.log("GOT EVENT", event);
+    subCloserRef.current = subscribe(
+      [filter],
+      (event: Event) => {
         setNostrEvents((prev) => {
           const exists = prev.find((e) => e.id === event.id);
           return exists ? prev : [...prev, event];
         });
       },
-      onclose() {
-        subCloserRef.current?.close();
-      },
-    });
+      useRelays,
+    );
 
     return () => {
       subCloserRef.current?.close();
@@ -109,87 +64,30 @@ export const Purchases: React.FC = () => {
     return { form, event: matchedEvent || null };
   });
   if (formsReady.length === 0) {
-    return <Text>{t("dashboardCards.noPurchases")}</Text>;
+    return (
+      <Typography color="text.secondary" sx={{ gridColumn: "1 / -1" }}>
+        {t("dashboardCards.noPurchases")}
+      </Typography>
+    );
   }
 
   return (
-    <div
-      style={{
-        padding: 16,
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        marginLeft: 10,
-      }}
-    >
-      {formsReady.map(({ form, event }, index) => {
-        const shortUrlColor = pastelColors[index % pastelColors.length];
-        const expiresColor = pastelColors[(index + 1) % pastelColors.length];
-        return (
-          <div key={form.id} style={{ marginLeft: 10, marginRight: 10 }}>
-            <div style={{ position: "relative" }}>
-              {event ? (
-                <FormEventCard
-                  event={event}
-                  viewKey={form.viewKey}
-                  shortLink={`/i/${form.slug}`}
-                />
-              ) : (
-                <div style={{ width: "80%", padding: 16 }}>
-                  <Skeleton active />
-                </div>
-              )}
-
-              <div
-                style={{
-                  marginTop: -12, // pulls the flairs up, overlapping card bottom a bit
-                  display: "flex",
-                  gap: 8,
-                  paddingLeft: 12, // align with card content
-                  flexWrap: "wrap",
-                }}
-              >
-                <Flair
-                  color={shortUrlColor}
-                  onClick={() =>
-                    window.open(
-                      `${window.location.origin}/i/${form.slug}`,
-                      "_blank"
-                    )
-                  }
-                  style={{ fontSize: 12, padding: "2px 8px" }}
-                >
-                  <Text
-                    type="secondary"
-                    style={{ marginRight: 4, fontSize: 12 }}
-                  >
-                    {t("dashboardCards.url")}:
-                  </Text>
-                  <Text code style={{ fontSize: 12 }}>
-                    {`${window.location.origin}/i/${form.slug}`}
-                  </Text>
-                </Flair>
-                <Flair
-                  color={expiresColor}
-                  style={{ fontSize: 12, padding: "2px 8px" }}
-                >
-                  <Text
-                    type="secondary"
-                    style={{ marginRight: 4, fontSize: 12 }}
-                  >
-                    {t("dashboardCards.urlExpiresOn")}:
-                  </Text>
-                  <Text style={{ fontSize: 12 }}>
-                    {form.expirationDate
-                      ? new Date(form.expirationDate).toLocaleDateString()
-                      : t("dashboardCards.never")}
-                  </Text>
-                </Flair>
-              </div>
-            </div>
-          </div>
+    <>
+      {formsReady.map(({ form, event }) => {
+        return event ? (
+          <FormEventCard
+            key={form.id}
+            event={event}
+            viewKey={form.viewKey}
+            shortLink={`/i/${form.slug}`}
+            expirationDate={form.expirationDate || null}
+          />
+        ) : (
+          <Box key={form.id} sx={{ p: 2 }}>
+            <Skeleton variant="rounded" height={220} />
+          </Box>
         );
       })}
-    </div>
+    </>
   );
 };

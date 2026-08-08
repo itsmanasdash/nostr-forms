@@ -1,7 +1,6 @@
-import React from 'react';
-import { Button, Upload, message, Space, Typography, Spin } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
-import type { UploadFile } from 'antd/es/upload/interface';
+import React, { useState } from 'react';
+import { Box, Button, CircularProgress, Typography } from '@mui/material';
+import UploadFileIcon from '@mui/icons-material/UploadFile';
 
 interface GGUFFileSelectorProps {
   onFileSelected: (file: File) => Promise<void>;
@@ -14,72 +13,89 @@ const GGUFFileSelector: React.FC<GGUFFileSelectorProps> = ({
   onFileSelected,
   loading = false,
   selectedFileName,
-  placeholder = "Select a GGUF file from your storage",
+  placeholder = 'Select a GGUF file from your storage',
 }) => {
-  const handleBeforeUpload = async (file: File) => {
-    // Validate extension
-    if (!file.name.toLowerCase().endsWith('.gguf')) {
-      message.error('Please select a valid GGUF file (*.gguf)');
-      return Upload.LIST_IGNORE;
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
     }
 
-    // Validate size (max 10GB)
+    if (!file.name.toLowerCase().endsWith('.gguf')) {
+      setErrorMessage('Please select a valid GGUF file (*.gguf)');
+      event.target.value = '';
+      return;
+    }
+
     const maxSize = 10 * 1024 * 1024 * 1024;
     if (file.size > maxSize) {
-      message.error('File size exceeds 10GB limit');
-      return Upload.LIST_IGNORE;
+      setErrorMessage('File size exceeds 10GB limit');
+      event.target.value = '';
+      return;
     }
+
+    setErrorMessage(null);
 
     try {
       await onFileSelected(file);
     } catch (error: any) {
-      message.error(`Failed to load model: ${error.message}`);
+      setErrorMessage(error?.message || 'Failed to load model');
+    } finally {
+      event.target.value = '';
     }
-
-    // Always prevent actual upload
-    return false;
   };
 
   return (
-    <div style={{ width: '100%' }}>
-      <Upload
-        maxCount={1}
+    <Box sx={{ width: '100%' }}>
+      <input
+        type="file"
         accept=".gguf"
-        showUploadList={false}
-        beforeUpload={handleBeforeUpload}
+        style={{ display: 'none' }}
+        onChange={handleFileChange}
         disabled={loading}
+      />
+      <Button
+        variant="contained"
+        component="label"
+        disabled={loading}
+        startIcon={<UploadFileIcon />}
+        sx={{ width: '100%', justifyContent: 'flex-start' }}
       >
-        <Button
-          icon={<UploadOutlined />}
-          loading={loading}
+        {loading ? (
+          <>
+            <CircularProgress size={18} color="inherit" sx={{ mr: 1 }} />
+            Loading Model...
+          </>
+        ) : (
+          'Choose GGUF File'
+        )}
+        <input
+          type="file"
+          accept=".gguf"
+          hidden
+          onChange={handleFileChange}
           disabled={loading}
-          block
-        >
-          {loading ? 'Loading Model...' : 'Choose GGUF File'}
-        </Button>
-      </Upload>
+        />
+      </Button>
 
       {selectedFileName && !loading && (
-        <Typography.Text
-          type="success"
-          style={{ marginTop: '8px', display: 'block' }}
-        >
+        <Typography color="success.main" sx={{ mt: 1, display: 'block' }}>
           ✓ Loaded: {selectedFileName}
-        </Typography.Text>
+        </Typography>
       )}
-      {loading && (
-        <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center' }}>
-          <Spin size="small" style={{ marginRight: '8px' }} />
-          <Typography.Text type="secondary">Initializing model...</Typography.Text>
-        </div>
+
+      {errorMessage && (
+        <Typography color="error" sx={{ mt: 1, display: 'block' }}>
+          {errorMessage}
+        </Typography>
       )}
-      <Typography.Text
-        type="secondary"
-        style={{ marginTop: '8px', display: 'block', fontSize: '12px' }}
-      >
+
+      <Typography color="text.secondary" sx={{ mt: 1, display: 'block', fontSize: 12 }}>
         {placeholder}
-      </Typography.Text>
-    </div>
+      </Typography>
+    </Box>
   );
 };
 

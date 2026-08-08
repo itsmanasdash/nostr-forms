@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
-import { Card, Divider, Typography, Skeleton } from "antd";
+import { Box, Card, CardContent, Skeleton, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
-import StyleWrapper from "./style";
 import { getPublicForms } from "../../nostr/publicForms";
 import { Event } from "nostr-tools";
 import { getDefaultRelays } from "../../nostr/common";
@@ -36,64 +35,59 @@ function PublicForms() {
   }, []);
 
   return (
-    <StyleWrapper>
-      <Typography.Text>{t("publicForms.recentlyPosted")}</Typography.Text>
+    <Box
+      sx={{ display: "flex", flexDirection: "column", alignItems: "center" }}
+    >
+      <Typography color="text.secondary">
+        {t("publicForms.recentlyPosted")}
+      </Typography>
       {isLoading ? (
-        <div
-          style={{
-            alignItems: "center",
+        <Box
+          sx={{
             display: "flex",
             flexDirection: "column",
-            marginLeft: "10%",
-            marginRight: "10%",
-            width: "80%",
+            width: "100%",
+            maxWidth: 760,
+            gap: 2,
+            mt: 2,
           }}
         >
           {Array(3)
             .fill(0)
             .map((_, index) => (
-              <Card key={index} style={{ margin: 20, width: "80%", minWidth: "360px" }}>
-                <Skeleton
-                  active
-                  title={{ width: "40%" }}
-                  paragraph={{ rows: 2 }}
-                />
-                <Divider />
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    margin: 30,
-                  }}
-                >
-                </div>
+              <Card key={index} variant="outlined">
+                <CardContent>
+                  <Skeleton variant="text" width="40%" height={32} />
+                  <Skeleton variant="text" />
+                  <Skeleton variant="text" />
+                </CardContent>
               </Card>
             ))}
-        </div>
+        </Box>
       ) : forms.length > 0 ? (
-        <div
-          style={{
-            alignItems: "center",
+        <Box
+          sx={{
             display: "flex",
             flexDirection: "column",
-            marginLeft: "10%",
-            marginRight: "10%",
-            width: "80%",
+            width: "100%",
+            maxWidth: 760,
+            gap: 2,
+            mt: 2,
           }}
         >
           {forms.map((f: Event) => {
             return <PublicFormCard key={f.id} event={f} />;
           })}
-        </div>
+        </Box>
       ) : (
-        <Typography.Text
-          style={{ display: "block", textAlign: "center", margin: "40px" }}
+        <Typography
+          color="text.secondary"
+          sx={{ display: "block", textAlign: "center", m: 5 }}
         >
           {t("publicForms.empty")}
-        </Typography.Text>
+        </Typography>
       )}
-    </StyleWrapper>
+    </Box>
   );
 }
 

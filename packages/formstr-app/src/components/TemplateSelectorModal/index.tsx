@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, Typography } from "antd";
+import { Box, Dialog, DialogContent, DialogTitle } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { FormTemplate, getAvailableTemplates } from "../../templates";
 import TemplateCard from "../TemplateCard";
@@ -24,35 +24,49 @@ const TemplateSelectorModal: React.FC<TemplateSelectorModalProps> = ({
   };
 
   return (
-    <Modal
-      title={
-        <Typography.Title level={4} style={{ textAlign: "center", margin: 0 }}>
-          {t("templates.chooseTemplate")}
-        </Typography.Title>
-      }
+    <Dialog
       open={visible}
-      onCancel={onClose}
-      footer={null}
-      width={600}
-      centered
+      onClose={onClose}
+      maxWidth="sm"
+      fullWidth
+      slotProps={{
+        paper: {
+          // Mobile only: tighten margins and bound to the dynamic viewport
+          // so content scrolls inside DialogContent, not the whole page.
+          // Desktop (sm+) falls back to MUI defaults, unchanged.
+          sx: {
+            m: { xs: 2 },
+            maxHeight: { xs: "calc(100dvh - 32px)" },
+          },
+        },
+      }}
     >
-      <div
-        style={{
-          display: "flex",
-          flexWrap: "wrap",
-          justifyContent: "center",
-          padding: "20px 0",
-        }}
-      >
-        {availableTemplates.map((template) => (
-          <TemplateCard
-            key={template.id}
-            template={template}
-            onClick={handleCardClick}
-          />
-        ))}
-      </div>
-    </Modal>
+      <DialogTitle sx={{ textAlign: "center" }}>
+        {t("templates.chooseTemplate")}
+      </DialogTitle>
+      <DialogContent>
+        <Box
+          sx={{
+            // Desktop keeps the original centered flex-wrap of fixed cards.
+            // Mobile switches to a compact 2-column grid so all templates fit.
+            display: { xs: "grid", sm: "flex" },
+            gridTemplateColumns: { xs: "repeat(2, 1fr)" },
+            gap: { xs: 1.5 },
+            flexWrap: { sm: "wrap" },
+            justifyContent: { sm: "center" },
+            py: { xs: 1, sm: 2.5 },
+          }}
+        >
+          {availableTemplates.map((template) => (
+            <TemplateCard
+              key={template.id}
+              template={template}
+              onClick={handleCardClick}
+            />
+          ))}
+        </Box>
+      </DialogContent>
+    </Dialog>
   );
 };
 
